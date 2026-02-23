@@ -60,7 +60,7 @@ for kandidat in "$RAPPORTDIR"/*_"${SLUG}".html; do
     /home/lars/.local/bin/hmail \
       --to "$MOTTAKER" \
       --subject "Investoranalyse: $SELSKAPER ($LAGRET_DATO) [fra arkiv]" \
-      --html < "$kandidat"
+      --file "$kandidat"
     echo "Sendt fra arkiv: $kandidat"
     exit 0
   fi
@@ -85,7 +85,7 @@ INSTRUKSJONER:
 3. Generer en ny komplett HTML-rapport basert på malens stil og CSS. Behold alle CSS-stilene eksakt. Erstatt innhold med data for de nye selskapene. Tilpass antall kolonner til antall selskaper.
 4. Rapporten skal skrives på norsk og tilpasses en privat småinvestor uten finansbakgrunn. Forklar faguttrykk underveis (som malen gjør).
 5. Lagre den ferdige HTML-rapporten til: $UTFIL
-6. Send rapporten som HTML-epost med kommandoen: /home/lars/.local/bin/hmail --to \"$MOTTAKER\" --subject \"Investoranalyse: $SELSKAPER ($DATO)\" --html < $UTFIL
+6. Send rapporten som HTML-epost med kommandoen: /home/lars/.local/bin/hmail --to \"$MOTTAKER\" --subject \"Investoranalyse: $SELSKAPER ($DATO)\" --file $UTFIL
 7. Bekreft at eposten ble sendt.
 
 Dato i dag: $DATO
@@ -120,7 +120,7 @@ if [[ ! -f "$UTFIL" ]]; then
     /home/lars/.local/bin/hmail \
       --to "$MOTTAKER" \
       --subject "Investoranalyse: $SELSKAPER ($DATO)" \
-      --html < "$UTFIL" \
+      --file "$UTFIL" \
       && echo "Epost sendt." \
       || echo "ADVARSEL: Epostsending feilet."
   else
@@ -143,4 +143,4 @@ fi
 echo ""
 echo "=== Ferdig ==="
 echo "Rapport lagret: $UTFIL"
-echo "For å sende på nytt: hmail --to \"MOTTAKER\" --subject \"...\" --html < $UTFIL"
+echo "For å sende på nytt: hmail --to \"MOTTAKER\" --subject \"...\" --file $UTFIL"

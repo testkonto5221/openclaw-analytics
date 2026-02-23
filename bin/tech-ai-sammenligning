@@ -58,7 +58,7 @@ for kandidat in "$RAPPORTDIR"/*_aimod_"${SLUG}".html; do
     /home/lars/.local/bin/hmail \
       --to "$MOTTAKER" \
       --subject "AI-modellsammenligning: $MODELLER ($LAGRET_DATO) [fra arkiv]" \
-      --html < "$kandidat"
+      --file "$kandidat"
     echo "Sendt fra arkiv: $kandidat"
     exit 0
   fi
@@ -144,7 +144,7 @@ Rapporten skal:
 
 LAGRE og SEND:
 1. Lagre rapporten til: $UTFIL
-2. Send med: /home/lars/.local/bin/hmail --to \"$MOTTAKER\" --subject \"AI-modellsammenligning: $MODELLER ($DATO)\" --html < $UTFIL
+2. Send med: /home/lars/.local/bin/hmail --to \"$MOTTAKER\" --subject \"AI-modellsammenligning: $MODELLER ($DATO)\" --file $UTFIL
 3. Bekreft at eposten ble sendt.
 
 Dato i dag: $DATO"
@@ -178,7 +178,7 @@ if [[ ! -f "$UTFIL" ]]; then
     /home/lars/.local/bin/hmail \
       --to "$MOTTAKER" \
       --subject "AI-modellsammenligning: $MODELLER ($DATO)" \
-      --html < "$UTFIL" \
+      --file "$UTFIL" \
       && echo "Epost sendt." \
       || echo "ADVARSEL: Epostsending feilet."
   else
