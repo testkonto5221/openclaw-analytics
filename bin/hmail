@@ -13,6 +13,7 @@ SUBJECT=""
 BODY=""
 BODY_FROM_ARG=false
 HTML=false
+FILE=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -22,6 +23,7 @@ while [[ $# -gt 0 ]]; do
     --subject) SUBJECT="$2"; shift 2 ;;
     --body)    BODY="$(printf '%b' "$2")"; BODY_FROM_ARG=true; shift 2 ;;
     --html)    HTML=true;    shift ;;
+    --file)    FILE="$2";    shift 2 ;;
     *) echo "Unknown option: $1" >&2; exit 1 ;;
   esac
 done
@@ -29,7 +31,11 @@ done
 [[ -z "$TO" ]]      && { echo "Error: --to is required" >&2; exit 1; }
 [[ -z "$SUBJECT" ]] && { echo "Error: --subject is required" >&2; exit 1; }
 
-if [[ "$BODY_FROM_ARG" == false ]]; then
+if [[ -n "$FILE" ]]; then
+  [[ -f "$FILE" ]] || { echo "Error: --file '$FILE' not found" >&2; exit 1; }
+  BODY=$(cat "$FILE")
+  HTML=true
+elif [[ "$BODY_FROM_ARG" == false ]]; then
   BODY=$(cat)
 fi
 
