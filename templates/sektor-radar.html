@@ -34,12 +34,7 @@
   li { margin: 5px 0; }
   .note { font-size: 0.8em; color: #718096; font-style: italic; }
   hr { border: none; border-top: 1px solid #e2e8f0; margin: 28px 0; }
-  .radar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
-  .radar-ring { border-radius: 6px; padding: 14px 18px; }
-  .ring-adopt  { border: 2px solid #276749; background: #f0fff4; }
-  .ring-try    { border: 2px solid #2b6cb0; background: #ebf4ff; }
-  .ring-assess { border: 2px solid #c05621; background: #fffff0; }
-  .ring-hold   { border: 2px solid #718096; background: #f7fafc; }
+  /* Radar-ringer: layout via tabell i HTML (ikke grid — fungerer ikke i epost) */
   .ring-adopt h4  { color: #276749; margin: 0 0 8px; }
   .ring-try h4    { color: #2b6cb0; margin: 0 0 8px; }
   .ring-assess h4 { color: #c05621; margin: 0 0 8px; }
@@ -167,36 +162,47 @@
 <h2>8. Radar-sammendrag</h2>
 <p class="note">Inspirert av ThoughtWorks Technology Radar.</p>
 
-<div class="radar-grid">
-  <div class="radar-ring ring-adopt">
-    <h4>ADOPT — bruk nå</h4>
-    <ul>
-      <li>...</li>
-      <li>...</li>
-    </ul>
-  </div>
-  <div class="radar-ring ring-try">
-    <h4>TRY — eksperimenter</h4>
-    <ul>
-      <li>...</li>
-      <li>...</li>
-    </ul>
-  </div>
-  <div class="radar-ring ring-assess">
-    <h4>ASSESS — følg med</h4>
-    <ul>
-      <li>...</li>
-      <li>...</li>
-    </ul>
-  </div>
-  <div class="radar-ring ring-hold">
-    <h4>HOLD — avvent</h4>
-    <ul>
-      <li>...</li>
-      <li>...</li>
-    </ul>
-  </div>
-</div>
+<table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 16px 0;">
+  <tr>
+    <td width="49%" valign="top" class="ring-adopt" style="border: 2px solid #276749; background: #f0fff4; border-radius: 6px; padding: 14px 18px; border-bottom: 2px solid #276749;">
+      <h4>ADOPT — bruk nå</h4>
+      <ul>
+        <li>...</li>
+        <li>...</li>
+      </ul>
+    </td>
+    <td style="width: 14px; border-bottom: none;"></td>
+    <td width="49%" valign="top" class="ring-try" style="border: 2px solid #2b6cb0; background: #ebf4ff; border-radius: 6px; padding: 14px 18px; border-bottom: 2px solid #2b6cb0;">
+      <h4>TRY — eksperimenter</h4>
+      <ul>
+        <li>...</li>
+        <li>...</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td style="height: 14px; border-bottom: none;"></td>
+    <td style="border-bottom: none;"></td>
+    <td style="height: 14px; border-bottom: none;"></td>
+  </tr>
+  <tr>
+    <td width="49%" valign="top" class="ring-assess" style="border: 2px solid #c05621; background: #fffff0; border-radius: 6px; padding: 14px 18px; border-bottom: 2px solid #c05621;">
+      <h4>ASSESS — følg med</h4>
+      <ul>
+        <li>...</li>
+        <li>...</li>
+      </ul>
+    </td>
+    <td style="width: 14px; border-bottom: none;"></td>
+    <td width="49%" valign="top" class="ring-hold" style="border: 2px solid #718096; background: #f7fafc; border-radius: 6px; padding: 14px 18px; border-bottom: 2px solid #718096;">
+      <h4>HOLD — avvent</h4>
+      <ul>
+        <li>...</li>
+        <li>...</li>
+      </ul>
+    </td>
+  </tr>
+</table>
 
 <hr>
 
@@ -211,7 +217,7 @@
 </div>
 
 <hr>
-<p class="note">Rapport generert [DATO] · openclaw-analytics</p>
+<p class="note">Rapport generert [DATO] · Klarsyn-analytics</p>
 
 </body>
 </html>

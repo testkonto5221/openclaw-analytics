@@ -33,8 +33,7 @@
   li { margin: 5px 0; }
   .note { font-size: 0.8em; color: #718096; font-style: italic; }
   hr { border: none; border-top: 1px solid #e2e8f0; margin: 28px 0; }
-  .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
-  .meta-cell { background: #f7fafc; border-radius: 6px; padding: 12px 16px; }
+  /* meta-grid: layout via tabell i HTML (ikke grid — fungerer ikke i epost) */
   .meta-cell dt { font-weight: bold; font-size: 0.85em; color: #4a5568; margin-bottom: 4px; }
   .meta-cell dd { margin: 0; }
 </style>
@@ -49,22 +48,25 @@
 
 <h2>1. Prosjektoversikt</h2>
 
-<div class="meta-grid">
-  <div class="meta-cell">
-    <dl>
-      <dt>GitHub-repo</dt><dd>...</dd>
-      <dt>Språk</dt><dd>...</dd>
-      <dt>Lisens</dt><dd>...</dd>
-    </dl>
-  </div>
-  <div class="meta-cell">
-    <dl>
-      <dt>Første commit</dt><dd>...</dd>
-      <dt>Siste stabile release</dt><dd>...</dd>
-      <dt>GitHub-stjerner</dt><dd>...</dd>
-    </dl>
-  </div>
-</div>
+<table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 16px 0;">
+  <tr>
+    <td width="49%" valign="top" class="meta-cell" style="background: #f7fafc; border-radius: 6px; padding: 12px 16px; border-bottom: none;">
+      <dl>
+        <dt>GitHub-repo</dt><dd>...</dd>
+        <dt>Språk</dt><dd>...</dd>
+        <dt>Lisens</dt><dd>...</dd>
+      </dl>
+    </td>
+    <td style="width: 14px; border-bottom: none;"></td>
+    <td width="49%" valign="top" class="meta-cell" style="background: #f7fafc; border-radius: 6px; padding: 12px 16px; border-bottom: none;">
+      <dl>
+        <dt>Første commit</dt><dd>...</dd>
+        <dt>Siste stabile release</dt><dd>...</dd>
+        <dt>GitHub-stjerner</dt><dd>...</dd>
+      </dl>
+    </td>
+  </tr>
+</table>
 
 <p>...</p>
 
@@ -179,7 +181,7 @@
 <p><strong>Hva som ville endret vurderingen negativt:</strong> ...</p>
 
 <hr>
-<p class="note">Rapport generert [DATO] · openclaw-analytics</p>
+<p class="note">Rapport generert [DATO] · Klarsyn-analytics</p>
 
 </body>
 </html>

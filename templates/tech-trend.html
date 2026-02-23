@@ -36,9 +36,7 @@
   li { margin: 5px 0; }
   .note { font-size: 0.8em; color: #718096; font-style: italic; }
   hr { border: none; border-top: 1px solid #e2e8f0; margin: 28px 0; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
-  .col-green { border: 1px solid #c6f6d5; background: #f0fff4; border-radius: 6px; padding: 14px 18px; }
-  .col-red   { border: 1px solid #fed7d7; background: #fff5f5; border-radius: 6px; padding: 14px 18px; }
+  /* two-col: layout via tabell i HTML (ikke grid — fungerer ikke i epost) */
   .col-green h4, .col-red h4 { margin: 0 0 10px; font-size: 0.95em; }
 </style>
 </head>
@@ -138,24 +136,27 @@
 
 <h2>6. Styrker og svakheter</h2>
 
-<div class="two-col">
-  <div class="col-green">
-    <h4>✓ Styrker</h4>
-    <ul>
-      <li>...</li>
-      <li>...</li>
-      <li>...</li>
-    </ul>
-  </div>
-  <div class="col-red">
-    <h4>✗ Svakheter</h4>
-    <ul>
-      <li>...</li>
-      <li>...</li>
-      <li>...</li>
-    </ul>
-  </div>
-</div>
+<table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 16px 0;">
+  <tr>
+    <td width="49%" valign="top" class="col-green" style="border: 1px solid #c6f6d5; background: #f0fff4; border-radius: 6px; padding: 14px 18px; border-bottom: 1px solid #c6f6d5;">
+      <h4>✓ Styrker</h4>
+      <ul>
+        <li>...</li>
+        <li>...</li>
+        <li>...</li>
+      </ul>
+    </td>
+    <td style="width: 14px; border-bottom: none;"></td>
+    <td width="49%" valign="top" class="col-red" style="border: 1px solid #fed7d7; background: #fff5f5; border-radius: 6px; padding: 14px 18px; border-bottom: 1px solid #fed7d7;">
+      <h4>✗ Svakheter</h4>
+      <ul>
+        <li>...</li>
+        <li>...</li>
+        <li>...</li>
+      </ul>
+    </td>
+  </tr>
+</table>
 
 <hr>
 
@@ -229,7 +230,7 @@
 <p><strong>Største risiko:</strong> ...</p>
 
 <hr>
-<p class="note">Rapport generert [DATO] · openclaw-analytics</p>
+<p class="note">Rapport generert [DATO] · Klarsyn-analytics</p>
 
 </body>
 </html>
