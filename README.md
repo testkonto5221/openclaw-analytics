@@ -124,6 +124,21 @@ send-stock-report --tickers "NVDA MSFT" --to "you@example.com" --subject "My wat
 
 ### Tech analytics
 
+#### `tech-puls "AI agents"`
+Fresh weekly digest with real links — videos, news, papers, tools. Searches the web for content from the last 30 days.
+
+Sections: what's happening now · videos worth watching (YouTube + conference talks) · latest news & articles · publications & research · tools with momentum · who to follow.
+
+```bash
+tech-puls "AI agents"
+tech-puls "WebAssembly" --to "annen@epost.no"
+tech-puls "Rust" --budget 1.50
+```
+
+**Model:** Sonnet · **Default budget:** $1.00 · **Cache:** 7 days
+
+---
+
 #### `tech-trend-analyse "Rust"`
 Deep technology trend analysis. The tech equivalent of `fin-dybdeanalyse`.
 

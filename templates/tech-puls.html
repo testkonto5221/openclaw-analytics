@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Georgia, serif; max-width: 860px; margin: auto; padding: 24px; color: #1a1a1a; background: #fff; }
+  h1 { color: #1a2e4a; border-bottom: 3px solid #1a2e4a; padding-bottom: 10px; }
+  h2 { color: #1a2e4a; margin-top: 36px; border-left: 4px solid #3a7bd5; padding-left: 10px; }
+  h3 { color: #2c5282; margin-top: 24px; }
+  a { color: #2b6cb0; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th { background: #1a2e4a; color: white; padding: 10px 8px; text-align: left; font-size: 0.9em; }
+  td { padding: 9px 8px; border-bottom: 1px solid #e2e8f0; font-size: 0.9em; }
+  tr:nth-child(even) { background: #f7fafc; }
+  .box { border: 1px solid #bee3f8; background: #ebf8ff; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-green { border: 1px solid #c6f6d5; background: #f0fff4; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  ul { padding-left: 20px; }
+  li { margin: 6px 0; }
+  .note { font-size: 0.8em; color: #718096; font-style: italic; }
+  hr { border: none; border-top: 1px solid #e2e8f0; margin: 28px 0; }
+
+  /* Lenkekort */
+  .link-card { border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px; margin: 10px 0; background: #fafafa; }
+  .link-card a { font-weight: bold; font-size: 0.97em; }
+  .link-meta { font-size: 0.8em; color: #718096; margin-top: 4px; }
+  .link-desc { font-size: 0.9em; color: #2d3748; margin-top: 6px; }
+
+  /* Tags */
+  .tag { display: inline-block; border-radius: 4px; padding: 2px 8px; font-size: 0.75em; font-weight: bold; margin-right: 6px; }
+  .tag-video { background: #fff5f5; color: #c53030; }
+  .tag-news  { background: #fefcbf; color: #744210; }
+  .tag-paper { background: #f0fff4; color: #276749; }
+  .tag-tool  { background: #e9d8fd; color: #553c9a; }
+  .tag-blogg { background: #ebf4ff; color: #2b6cb0; }
+
+  /* Ferskhetsindikatorer */
+  .fresh { color: #276749; font-size: 0.78em; font-weight: bold; }
+  .older { color: #a0aec0; font-size: 0.78em; }
+</style>
+</head>
+<body>
+
+<h1>Tech-puls: [OMRÅDE]</h1>
+<h3>[Måned] [År] — ferskeste trender, videoer og lesestoff</h3>
+<p class="note">Ukentlig teknologioppdatering. Alle lenker er verifiserte og ferske (siste 30–60 dager der mulig).</p>
+
+<hr>
+
+<h2>1. Hva skjer nå</h2>
+<!-- 3–5 setninger: hva er det viktigste akkurat nå, hva driver endringen, hva er det hete temaet -->
+<p>...</p>
+
+<div class="box">
+  <strong>Nøkkeltrender akkurat nå:</strong>
+  <ul>
+    <li>...</li>
+    <li>...</li>
+    <li>...</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2>2. Videoer verdt å se</h2>
+<!-- Faktiske YouTube-videoer og konferanseopptak — søk og verifiser alle URL-er -->
+
+<div class="link-card">
+  <span class="tag tag-video">▶ YouTube</span> <span class="fresh">● Ny</span><br>
+  <a href="URL_HER">Tittel på video</a>
+  <div class="link-meta">Kanal · Publisert: dato · Varighet: XX min</div>
+  <div class="link-desc">Kort om hva videoen handler om og hvorfor den er verdt å se.</div>
+</div>
+
+<div class="link-card">
+  <span class="tag tag-video">▶ Konferanse</span> <span class="older">● Eldre</span><br>
+  <a href="URL_HER">Tittel på video</a>
+  <div class="link-meta">Konferanse / kanal · Publisert: dato · Varighet: XX min</div>
+  <div class="link-desc">Kort beskrivelse.</div>
+</div>
+
+<!-- Gjenta for totalt 4–6 videoer -->
+
+<hr>
+
+<h2>3. Nyheter og artikler</h2>
+<!-- Ferske nyheter siste 30 dager fra TechCrunch, Wired, The Verge, Ars Technica, HN, The Register, InfoQ osv. -->
+
+<div class="link-card">
+  <span class="tag tag-news">📰 Nyhet</span> <span class="fresh">● Ny</span><br>
+  <a href="URL_HER">Tittel på artikkel</a>
+  <div class="link-meta">Kilde · Dato</div>
+  <div class="link-desc">Én setning om hva artikkelen handler om.</div>
+</div>
+
+<!-- Gjenta for totalt 5–8 nyheter/artikler -->
+
+<hr>
+
+<h2>4. Publikasjoner og forskning</h2>
+<!-- Papers, rapporter, dypere analyser — arXiv, ACM, IEEE, bedriftsblogger, analysebyråer -->
+
+<div class="link-card">
+  <span class="tag tag-paper">📄 Paper / rapport</span><br>
+  <a href="URL_HER">Tittel</a>
+  <div class="link-meta">Forfatter(e) · Utgiver · Dato</div>
+  <div class="link-desc">2 setninger om innhold og hvem det er relevant for.</div>
+</div>
+
+<!-- Gjenta for totalt 2–4 publikasjoner -->
+
+<hr>
+
+<h2>5. Verktøy og prosjekter å følge</h2>
+
+<table>
+  <tr>
+    <th>Navn</th>
+    <th>Hva</th>
+    <th>Lenke</th>
+    <th>Hvorfor nå</th>
+  </tr>
+  <tr>
+    <td><strong>...</strong></td>
+    <td>...</td>
+    <td><a href="URL_HER">GitHub / nettside</a></td>
+    <td>...</td>
+  </tr>
+</table>
+
+<hr>
+
+<h2>6. Hvem å følge</h2>
+<!-- Nøkkelpersoner, kanaler, nyhetsbrev, podcaster -->
+<ul>
+  <li><strong>Navn / kanal:</strong> <a href="URL_HER">Twitter/X · YouTube · Substack</a> — kort om hvem/hva og hvorfor følge</li>
+</ul>
+
+<hr>
+<p class="note">Rapport generert [DATO] · Klarsyn-analytics · Lenker verifisert på genereringstidspunktet.</p>
+
+</body>
+</html>

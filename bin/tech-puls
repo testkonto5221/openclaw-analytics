@@ -1,0 +1,187 @@
+#!/bin/bash
+# tech-puls — Fersk teknologirapport med videoer, nyheter og lenker for et gitt område
+#
+# Bruk:
+#   tech-puls "AI agents"
+#   tech-puls "WebAssembly" --to "annen@epost.no"
+#   tech-puls "Rust" --budget 1.50
+#   tech-puls "kubernetes" --model claude-opus-4-6
+#
+# Standardmottaker: lsoraas@gmail.com
+# Hurtigbuffer: 7 dager (kjør med samme område innen 7 dager → sendes fra arkiv)
+
+set -e
+
+RAPPORTDIR="/home/lars/.openclaw/workspace/rapporter"
+MALSTI="/home/lars/.openclaw/workspace/templates/tech-puls.html"
+MOTTAKER="lsoraas@gmail.com"
+BUDSJETT="1.00"
+MODELL="claude-sonnet-4-6"
+OMRÅDE=""
+
+# --- Argumentparsing ---
+POSITIONAL=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --to)     MOTTAKER="$2"; shift 2 ;;
+    --budget) BUDSJETT="$2"; shift 2 ;;
+    --model)  MODELL="$2";   shift 2 ;;
+    *)        POSITIONAL+=("$1"); shift ;;
+  esac
+done
+
+OMRÅDE="${POSITIONAL[0]:-}"
+
+if [[ -z "$OMRÅDE" ]]; then
+  echo "Feil: Oppgi et teknologiområde."
+  echo ""
+  echo "Bruk:    tech-puls \"AI agents\""
+  echo "         tech-puls \"WebAssembly\" --to \"noen@epost.no\""
+  echo "         tech-puls \"Rust\" --budget 1.50"
+  exit 1
+fi
+
+DATO=$(date +%Y-%m-%d)
+SLUG=$(echo "$OMRÅDE" \
+  | sed 's/[æÆ]/ae/g; s/[øØ]/o/g; s/[åÅ]/a/g' \
+  | tr '[:upper:]' '[:lower:]' \
+  | tr -cs 'a-z0-9' '-' \
+  | sed 's/^-//;s/-$//')
+
+UTFIL="${RAPPORTDIR}/${DATO}_puls_${SLUG}.html"
+RAG_KILDE="puls_${DATO}_${SLUG}"
+
+mkdir -p "$RAPPORTDIR"
+
+# --- Sjekk arkiv: send eksisterende hvis under 7 dager gammel ---
+for kandidat in "$RAPPORTDIR"/*_puls_"${SLUG}".html; do
+  [[ -f "$kandidat" ]] || continue
+  alder_dager=$(( ( $(date +%s) - $(stat -c %Y "$kandidat" 2>/dev/null || echo 0) ) / 86400 ))
+  if [[ $alder_dager -lt 7 ]]; then
+    LAGRET_DATO=$(basename "$kandidat" .html | cut -d_ -f1)
+    echo "✅ Tech-puls for \"$OMRÅDE\" finnes fra ${LAGRET_DATO} — sender fra arkiv."
+    /home/lars/.local/bin/hmail \
+      --to "$MOTTAKER" \
+      --subject "Tech-puls: $OMRÅDE ($LAGRET_DATO) [fra arkiv]" \
+      --file "$kandidat"
+    echo "Sendt fra arkiv: $kandidat"
+    exit 0
+  fi
+done
+
+echo "=== tech-puls ==="
+echo "Område   : $OMRÅDE"
+echo "Mottaker : $MOTTAKER"
+echo "Modell   : $MODELL"
+echo "Budsjett : USD $BUDSJETT"
+echo "Lagres   : $UTFIL"
+echo ""
+echo "Starter Claude Code CLI..."
+
+PROMPT="Du er en teknologijournalist og kurator som lager presise, lenkefylte oppdateringer om spesifikke teknologiområder.
+
+Din oppgave: Lag en fersk tech-puls-rapport om: $OMRÅDE
+
+VIKTIGSTE REGEL: ALDRI fabriker lenker. Alle URL-er du inkluderer MÅ du ha funnet via websøk. Hvis du er usikker på om en lenke eksisterer, utelat den.
+
+INSTRUKSJONER:
+1. Bruk websøk aktivt — søk etter det nyeste (siste 30–60 dager) innen $OMRÅDE: nyheter, YouTube-videoer, blogginnlegg, papers, verktøy, konferanseopptak
+2. Les malen fra filen: $MALSTI
+3. Generer en komplett HTML-rapport med samme CSS-klasser og struktur som malen
+
+Rapporten skal inneholde ALLE disse seksjonene:
+
+<h2>1. Hva skjer nå</h2>
+3–5 setninger om hva som er det viktigste innen $OMRÅDE akkurat nå. Hva driver endringen? Hva er det hete temaet? Skriv som en oppdatert journalist, ikke som et leksikon. Legg til en .box med 3–5 punkter om nøkkeltrender akkurat nå.
+
+<h2>2. Videoer verdt å se</h2>
+Søk etter faktiske YouTube-videoer og konferanseopptak om $OMRÅDE fra de siste 60 dagene. Inkluder 4–6 videoer.
+For hver video: ekte URL (søk etter den!), tittel, kanal, dato, varighet, og 1–2 setninger om innhold og hvorfor den er verdt å se.
+Merk med «● Ny» (klasse: fresh) hvis publisert siste 14 dager, ellers «● Eldre» (klasse: older).
+Bruk CSS-klassen .link-card for hvert kort og .tag.tag-video for taggen.
+
+<h2>3. Nyheter og artikler</h2>
+Søk etter ferskeste nyheter (siste 30 dager) fra pålitelige kilder: TechCrunch, Wired, The Verge, Ars Technica, Hacker News, The Register, InfoQ, thenewstack.io osv. Inkluder 5–8 saker.
+For hver: ekte URL, tittel, kilde, dato, og én setning om hva artikkelen handler om.
+Bruk .link-card og .tag.tag-news.
+
+<h2>4. Publikasjoner og forskning</h2>
+Søk etter papers, rapporter eller dypere analyser om $OMRÅDE (arXiv, ACM, IEEE, bedriftsblogger, analysebyråer som Gartner/Forrester/a16z). Inkluder 2–4 publikasjoner.
+For hver: ekte URL, tittel, forfatter(e), kilde, dato, og 2 setninger om innhold og relevans.
+Bruk .link-card og .tag.tag-paper.
+
+<h2>5. Verktøy og prosjekter å følge</h2>
+Tabell med 4–6 konkrete verktøy, biblioteker, rammeverk eller OSS-prosjekter innen $OMRÅDE med momentum akkurat nå.
+Kolonner: Navn | Hva | Lenke (GitHub/nettside) | Hvorfor nå
+
+<h2>6. Hvem å følge</h2>
+3–5 nøkkelpersoner, YouTube-kanaler, nyhetsbrev eller podcaster for å holde seg oppdatert innen $OMRÅDE.
+For hver: navn, lenke (Twitter/X, YouTube, Substack), og kort om hvem/hva og hvorfor følge.
+
+Rapporten skal:
+- Skrives på norsk, men beholde engelske tekniske termer og egennavn
+- Bruke CSS-klassene fra malen (.link-card, .tag-video, .tag-news, .tag-paper, .tag-tool, .tag-blogg, .fresh, .older, .box)
+- Ha faktiske, verifiserte lenker — INGEN fabrikkerte URL-er
+- Angi publiseringsdato på alt innhold
+- Prioritere innhold fra de siste 30 dagene
+
+LAGRE og SEND:
+1. Lagre rapporten til: $UTFIL
+2. Send med: /home/lars/.local/bin/hmail --to \"$MOTTAKER\" --subject \"Tech-puls: $OMRÅDE ($DATO)\" --file $UTFIL
+3. Bekreft at eposten ble sendt.
+
+Dato i dag: $DATO"
+
+TMPOUT=$(mktemp --suffix=.html)
+
+set +e
+claude-kjor \
+  --tittel "Tech-puls: $OMRÅDE" \
+  --mottaker "$MOTTAKER" \
+  -- \
+  --dangerously-skip-permissions \
+  --model "$MODELL" \
+  --max-budget-usd "$BUDSJETT" \
+  --print \
+  "$PROMPT" | tee "$TMPOUT"
+CLAUDE_OK=${PIPESTATUS[0]}
+set -e
+
+if [[ $CLAUDE_OK -ne 0 ]]; then
+  echo "FEIL: claude-kjor avsluttet med kode $CLAUDE_OK."
+  rm -f "$TMPOUT"
+  exit $CLAUDE_OK
+fi
+
+# Fallback: hvis Claude ikke lagret filen selv, redd fra stdout
+if [[ ! -f "$UTFIL" ]]; then
+  if [[ -s "$TMPOUT" ]]; then
+    echo ""
+    echo "Rapport ikke lagret av Claude — lagrer fra stdout-buffer..."
+    cp "$TMPOUT" "$UTFIL"
+    /home/lars/.local/bin/hmail \
+      --to "$MOTTAKER" \
+      --subject "Tech-puls: $OMRÅDE ($DATO)" \
+      --file "$UTFIL" \
+      && echo "Epost sendt." \
+      || echo "ADVARSEL: Epostsending feilet."
+  else
+    echo "ADVARSEL: Ingen rapport å lagre — stdout var tom."
+  fi
+fi
+rm -f "$TMPOUT"
+
+# --- Legg til i RAG ---
+if [[ -f "$UTFIL" ]]; then
+  echo ""
+  echo "Legger tech-puls til i RAG som: $RAG_KILDE"
+  /home/lars/.local/bin/rag add "$UTFIL" "$RAG_KILDE" \
+    && echo "RAG: OK" \
+    || echo "RAG: FEIL (rapport er likevel lagret på disk)"
+else
+  echo "ADVARSEL: Rapportfil ikke funnet på $UTFIL — RAG-ingestion hoppet over."
+fi
+
+echo ""
+echo "=== Ferdig ==="
+echo "Rapport lagret: $UTFIL"
