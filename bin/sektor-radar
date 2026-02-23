@@ -12,7 +12,7 @@
 set -e
 
 RAPPORTDIR="/home/lars/.openclaw/workspace/rapporter"
-MALSTI="/home/lars/.openclaw/workspace/templates/investorsammenligning.html"
+MALSTI="/home/lars/.openclaw/workspace/templates/sektor-radar.html"
 MOTTAKER="lsoraas@gmail.com"
 BUDSJETT="0.80"
 SEKTOR=""

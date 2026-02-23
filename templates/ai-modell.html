@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Georgia, serif; max-width: 960px; margin: auto; padding: 24px; color: #1a1a1a; background: #fff; }
+  h1 { color: #1a2e4a; border-bottom: 3px solid #1a2e4a; padding-bottom: 10px; }
+  h2 { color: #1a2e4a; margin-top: 36px; border-left: 4px solid #3a7bd5; padding-left: 10px; }
+  h3 { color: #2c5282; margin-top: 24px; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th { background: #1a2e4a; color: white; padding: 10px 8px; text-align: left; font-size: 0.9em; }
+  td { padding: 9px 8px; border-bottom: 1px solid #e2e8f0; font-size: 0.9em; }
+  tr:nth-child(even) { background: #f7fafc; }
+  tr:hover { background: #ebf4ff; }
+  .green { color: #276749; }
+  .red { color: #c53030; }
+  .orange { color: #c05621; }
+  .blue { color: #2b6cb0; }
+  .box { border: 1px solid #bee3f8; background: #ebf8ff; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-green { border: 1px solid #c6f6d5; background: #f0fff4; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-red { border: 1px solid #fed7d7; background: #fff5f5; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-yellow { border: 1px solid #fefcbf; background: #fffff0; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  /* Traffic lights for use-case fit */
+  .fit-best { color: #276749; font-weight: bold; font-size: 1.1em; }
+  .fit-good { color: #38a169; }
+  .fit-ok   { color: #c05621; }
+  .fit-poor { color: #c53030; }
+  /* Price highlight */
+  .cheap { color: #276749; font-weight: bold; }
+  .expensive { color: #c53030; font-weight: bold; }
+  /* Winner badge */
+  .winner { display:inline-block; background:#276749; color:white; border-radius:4px; padding:2px 8px; font-size:0.85em; font-weight:bold; }
+  .runner { display:inline-block; background:#2b6cb0; color:white; border-radius:4px; padding:2px 8px; font-size:0.85em; }
+  ul { padding-left: 20px; }
+  li { margin: 5px 0; }
+  .note { font-size: 0.8em; color: #718096; font-style: italic; }
+  .note-missing { font-size: 0.8em; color: #c05621; font-style: italic; }
+  hr { border: none; border-top: 1px solid #e2e8f0; margin: 28px 0; }
+  .legend { display: flex; gap: 16px; margin: 8px 0; flex-wrap: wrap; }
+  .legend span { display: flex; align-items: center; gap: 6px; font-size: 0.85em; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+</style>
+</head>
+<body>
+
+<h1>AI-modellsammenligning</h1>
+<h3>[Modell A] · [Modell B] · [Modell C] — [Måned] [År]</h3>
+<p class="note">Praktisk sammenligning for utviklere og tech-brukere. Ikke tilknyttet noen leverandør.</p>
+
+<div class="legend">
+  <span><span class="dot" style="background:#276749"></span> [Modell A]</span>
+  <span><span class="dot" style="background:#2b4acb"></span> [Modell B]</span>
+  <span><span class="dot" style="background:#744210"></span> [Modell C]</span>
+</div>
+
+<hr>
+
+<h2>1. Modellkort</h2>
+
+<table>
+  <tr>
+    <th>Egenskap</th>
+    <th>[Modell A]</th>
+    <th>[Modell B]</th>
+    <th>[Modell C]</th>
+  </tr>
+  <tr><td>Leverandør</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Utgivelsesdato</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Kontekstvindu</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Treningsdata cutoff</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Modellstørrelse</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Lisens</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>API-tilgjengelighet</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Multimodal</td><td>...</td><td>...</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>2. Benchmarks</h2>
+<p class="note">Høyere er bedre. <span class="note-missing">* = ikke offisielt publisert</span></p>
+
+<table>
+  <tr>
+    <th>Benchmark</th>
+    <th>Hva det måler</th>
+    <th>[Modell A]</th>
+    <th>[Modell B]</th>
+    <th>[Modell C]</th>
+  </tr>
+  <tr><td>MMLU</td><td>Akademisk kunnskap (5-shot)</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>HumanEval</td><td>Kodegenerering (Python pass@1)</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>MATH</td><td>Matematisk resonnering</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>GPQA</td><td>Ekspertnivå-spørsmål</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>LiveCodeBench</td><td>Fersk kodebenchmark</td><td>...</td><td>...</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>3. Prising</h2>
+
+<table>
+  <tr>
+    <th>Parameter</th>
+    <th>[Modell A]</th>
+    <th>[Modell B]</th>
+    <th>[Modell C]</th>
+  </tr>
+  <tr><td>Input (per 1M tokens)</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Output (per 1M tokens)</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Gratis tier</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Batch-rabatt</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Maks tokens per forespørsel</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Beste verdi for</td><td>...</td><td>...</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>4. Styrker per brukstilfelle</h2>
+<p class="note">🟢 Beste i klassen &nbsp;|&nbsp; 🟡 Bra &nbsp;|&nbsp; 🟠 Godkjent &nbsp;|&nbsp; 🔴 Svak</p>
+
+<table>
+  <tr>
+    <th>Brukstilfelle</th>
+    <th>[Modell A]</th>
+    <th>[Modell B]</th>
+    <th>[Modell C]</th>
+  </tr>
+  <tr><td>Kodegenerering</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Lange dokumenter / summarisering</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Flerspråklig tekst</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Funksjonskall / tool use</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Strukturert output (JSON)</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Kreativ skriving</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Matematikk og logikk</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Multimodal (bilde / lyd)</td><td>...</td><td>...</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>5. Praktisk API-erfaring</h2>
+
+<table>
+  <tr>
+    <th>Parameter</th>
+    <th>[Modell A]</th>
+    <th>[Modell B]</th>
+    <th>[Modell C]</th>
+  </tr>
+  <tr><td>Time-to-first-token (typisk)</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Rate limit (RPM)</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Rate limit (TPM)</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Pålitelighet / oppetid</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Streaming</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>SDK-støtte</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Playground / web-grensesnitt</td><td>...</td><td>...</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>6. Svakheter og kjente begrensninger</h2>
+
+<table>
+  <tr>
+    <th>Modell</th>
+    <th>Største svakhet</th>
+    <th>Kjente problemer</th>
+  </tr>
+  <tr><td>[Modell A]</td><td>...</td><td>...</td></tr>
+  <tr><td>[Modell B]</td><td>...</td><td>...</td></tr>
+  <tr><td>[Modell C]</td><td>...</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>7. Hvem passer hvilken modell?</h2>
+
+<table>
+  <tr>
+    <th>Profil</th>
+    <th>Beste valg</th>
+    <th>Begrunnelse</th>
+  </tr>
+  <tr><td>Indie-utvikler / hobby</td><td>...</td><td>...</td></tr>
+  <tr><td>Startup (kostnadsbevisst)</td><td>...</td><td>...</td></tr>
+  <tr><td>Enterprise</td><td>...</td><td>...</td></tr>
+  <tr><td>Forsker / akademiker</td><td>...</td><td>...</td></tr>
+  <tr><td>Privatperson / daglig bruk</td><td>...</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>8. Vinnere per scenario</h2>
+
+<div class="box-green">
+  <table>
+    <tr><th>Scenario</th><th>Vinner</th><th>Løper-opp</th></tr>
+    <tr><td>Beste for kode</td><td><span class="winner">...</span></td><td><span class="runner">...</span></td></tr>
+    <tr><td>Beste kostnad/ytelse</td><td><span class="winner">...</span></td><td><span class="runner">...</span></td></tr>
+    <tr><td>Beste for lange dokumenter</td><td><span class="winner">...</span></td><td><span class="runner">...</span></td></tr>
+    <tr><td>Beste open-source-alternativ</td><td><span class="winner">...</span></td><td><span class="runner">...</span></td></tr>
+    <tr><td>Beste totalt sett akkurat nå</td><td><span class="winner">...</span></td><td><span class="runner">...</span></td></tr>
+  </table>
+</div>
+
+<hr>
+<p class="note">Rapport generert [DATO] · openclaw-analytics · Benchmarktall hentet fra offisielle kilder der tilgjengelig.</p>
+
+</body>
+</html>

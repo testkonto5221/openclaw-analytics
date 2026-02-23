@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Georgia, serif; max-width: 860px; margin: auto; padding: 24px; color: #1a1a1a; background: #fff; }
+  h1 { color: #1a2e4a; border-bottom: 3px solid #1a2e4a; padding-bottom: 10px; }
+  h2 { color: #1a2e4a; margin-top: 36px; border-left: 4px solid #3a7bd5; padding-left: 10px; }
+  h3 { color: #2c5282; margin-top: 24px; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th { background: #1a2e4a; color: white; padding: 10px 8px; text-align: left; font-size: 0.9em; }
+  td { padding: 9px 8px; border-bottom: 1px solid #e2e8f0; font-size: 0.9em; }
+  tr:nth-child(even) { background: #f7fafc; }
+  tr:hover { background: #ebf4ff; }
+  .green { color: #276749; }
+  .red { color: #c53030; }
+  .orange { color: #c05621; }
+  .box { border: 1px solid #bee3f8; background: #ebf8ff; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-green { border: 1px solid #c6f6d5; background: #f0fff4; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-red { border: 1px solid #fed7d7; background: #fff5f5; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-yellow { border: 1px solid #fefcbf; background: #fffff0; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  /* Health status */
+  .healthy  { display:inline-block; background:#276749; color:white; border-radius:4px; padding:3px 10px; font-weight:bold; }
+  .watchful { display:inline-block; background:#c05621; color:white; border-radius:4px; padding:3px 10px; font-weight:bold; }
+  .critical { display:inline-block; background:#c53030; color:white; border-radius:4px; padding:3px 10px; font-weight:bold; }
+  /* Score bars */
+  .score-5 { color: #276749; font-weight: bold; }
+  .score-4 { color: #38a169; font-weight: bold; }
+  .score-3 { color: #c05621; }
+  .score-2 { color: #e53e3e; }
+  .score-1 { color: #c53030; font-weight: bold; }
+  ul { padding-left: 20px; }
+  li { margin: 5px 0; }
+  .note { font-size: 0.8em; color: #718096; font-style: italic; }
+  hr { border: none; border-top: 1px solid #e2e8f0; margin: 28px 0; }
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .meta-cell { background: #f7fafc; border-radius: 6px; padding: 12px 16px; }
+  .meta-cell dt { font-weight: bold; font-size: 0.85em; color: #4a5568; margin-bottom: 4px; }
+  .meta-cell dd { margin: 0; }
+</style>
+</head>
+<body>
+
+<h1>OSS-helsesjekk: [PROSJEKT]</h1>
+<h3>[PROSJEKT] — [Måned] [År]</h3>
+<p class="note">Uavhengig vurdering av prosjektets helse og bærekraft. Ikke tilknyttet prosjektet.</p>
+
+<hr>
+
+<h2>1. Prosjektoversikt</h2>
+
+<div class="meta-grid">
+  <div class="meta-cell">
+    <dl>
+      <dt>GitHub-repo</dt><dd>...</dd>
+      <dt>Språk</dt><dd>...</dd>
+      <dt>Lisens</dt><dd>...</dd>
+    </dl>
+  </div>
+  <div class="meta-cell">
+    <dl>
+      <dt>Første commit</dt><dd>...</dd>
+      <dt>Siste stabile release</dt><dd>...</dd>
+      <dt>GitHub-stjerner</dt><dd>...</dd>
+    </dl>
+  </div>
+</div>
+
+<p>...</p>
+
+<hr>
+
+<h2>2. Bidragsyter-helse</h2>
+
+<table>
+  <tr>
+    <th>Parameter</th>
+    <th>Verdi</th>
+    <th>Vurdering</th>
+  </tr>
+  <tr><td>Totalt antall bidragsytere</td><td>...</td><td>...</td></tr>
+  <tr><td>Aktive bidragsytere (siste 90 dager)</td><td>...</td><td>...</td></tr>
+  <tr><td>Top bidragsyter (% av commits)</td><td>...%</td><td>...</td></tr>
+  <tr><td>Top 3 bidragsytere samlet (% av commits)</td><td>...%</td><td>...</td></tr>
+  <tr><td>Bus factor</td><td>...</td><td>...</td></tr>
+  <tr><td>Organisatorisk spredning</td><td>...</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>3. Commit- og release-aktivitet</h2>
+
+<table>
+  <tr><th>Periode</th><th>Commits</th><th>Merknader</th></tr>
+  <tr><td>Siste 30 dager</td><td>...</td><td>...</td></tr>
+  <tr><td>Siste 90 dager</td><td>...</td><td>...</td></tr>
+  <tr><td>Siste 6 måneder</td><td>...</td><td>...</td></tr>
+  <tr><td>Siste 12 måneder</td><td>...</td><td>...</td></tr>
+</table>
+
+<p><strong>Siste stabile release:</strong> ... &nbsp;|&nbsp; <strong>Release-frekvens:</strong> ...</p>
+<p><strong>Aktivitetstrend:</strong> ...</p>
+
+<hr>
+
+<h2>4. Issue- og PR-helse</h2>
+
+<table>
+  <tr><th>Parameter</th><th>Verdi</th><th>Vurdering</th></tr>
+  <tr><td>Åpne issues</td><td>...</td><td>...</td></tr>
+  <tr><td>Issues lukket siste 90 dager</td><td>...</td><td>...</td></tr>
+  <tr><td>Median responstid på nye issues</td><td>...</td><td>...</td></tr>
+  <tr><td>Issues > 6 måneder uten respons</td><td>...</td><td>...</td></tr>
+  <tr><td>Åpne PR-er</td><td>...</td><td>...</td></tr>
+  <tr><td>PR merge-rate (siste 90 dager)</td><td>...%</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>5. Avhengighetsrisiko</h2>
+<!-- Kritiske avhengigheter, CVE-er, utdaterte pakker -->
+
+<p>...</p>
+
+<ul>
+  <li>...</li>
+</ul>
+
+<hr>
+
+<h2>6. Finansiering og governance</h2>
+
+<table>
+  <tr><th>Parameter</th><th>Status</th></tr>
+  <tr><td>Bedriftssponsor</td><td>...</td></tr>
+  <tr><td>Stiftelsestilknytning</td><td>...</td></tr>
+  <tr><td>GitHub Sponsors / OpenCollective</td><td>...</td></tr>
+  <tr><td>Governance-modell</td><td>...</td></tr>
+  <tr><td>Risiko hvis sponsor trekker seg</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>7. Fork-økosystem</h2>
+
+<p><strong>Antall forks:</strong> ...</p>
+<p>...</p>
+
+<hr>
+
+<h2>8. Samlet helsevurdering</h2>
+
+<table>
+  <tr>
+    <th>Dimensjon</th>
+    <th>Score (1–5)</th>
+    <th>Begrunnelse</th>
+  </tr>
+  <tr><td>Bidragsyterspredning</td><td class="score-3">3/5</td><td>...</td></tr>
+  <tr><td>Vedlikeholdsaktivitet</td><td class="score-3">3/5</td><td>...</td></tr>
+  <tr><td>Issue-respons</td><td class="score-3">3/5</td><td>...</td></tr>
+  <tr><td>Avhengighetsrisiko (lav = bra)</td><td class="score-3">3/5</td><td>...</td></tr>
+  <tr><td>Finansieringssikkerhet</td><td class="score-3">3/5</td><td>...</td></tr>
+  <tr><td>Community-størrelse</td><td class="score-3">3/5</td><td>...</td></tr>
+</table>
+
+<!-- Bruk én av: healthy / watchful / critical -->
+<div class="box">
+  <strong>Samlet dom:</strong> <span class="healthy">🟢 Friskt</span>
+  &nbsp;—&nbsp; ...
+</div>
+
+<hr>
+
+<h2>9. Anbefaling</h2>
+
+<p><strong>Anbefalt for produksjonsbruk?</strong> ...</p>
+<p><strong>Største risiko:</strong> ...</p>
+<p><strong>Hva som ville endret vurderingen negativt:</strong> ...</p>
+
+<hr>
+<p class="note">Rapport generert [DATO] · openclaw-analytics</p>
+
+</body>
+</html>

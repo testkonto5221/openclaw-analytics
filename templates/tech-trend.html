@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Georgia, serif; max-width: 860px; margin: auto; padding: 24px; color: #1a1a1a; background: #fff; }
+  h1 { color: #1a2e4a; border-bottom: 3px solid #1a2e4a; padding-bottom: 10px; }
+  h2 { color: #1a2e4a; margin-top: 36px; border-left: 4px solid #3a7bd5; padding-left: 10px; }
+  h3 { color: #2c5282; margin-top: 24px; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th { background: #1a2e4a; color: white; padding: 10px 8px; text-align: left; font-size: 0.9em; }
+  td { padding: 9px 8px; border-bottom: 1px solid #e2e8f0; font-size: 0.9em; }
+  tr:nth-child(even) { background: #f7fafc; }
+  tr:hover { background: #ebf4ff; }
+  .green { color: #276749; }
+  .red { color: #c53030; }
+  .orange { color: #c05621; }
+  .blue { color: #2b6cb0; }
+  .box { border: 1px solid #bee3f8; background: #ebf8ff; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-green { border: 1px solid #c6f6d5; background: #f0fff4; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-red { border: 1px solid #fed7d7; background: #fff5f5; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-yellow { border: 1px solid #fefcbf; background: #fffff0; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .verdict { font-size: 1.15em; font-weight: bold; border-radius: 8px; padding: 18px 22px; margin: 16px 0; }
+  .verdict-learn { background: #f0fff4; border: 2px solid #276749; color: #276749; }
+  .verdict-watch { background: #fffff0; border: 2px solid #c05621; color: #c05621; }
+  .verdict-skip  { background: #fff5f5; border: 2px solid #c53030; color: #c53030; }
+  .score { display: inline-block; width: 28px; height: 28px; border-radius: 50%; color: white; text-align: center; line-height: 28px; font-weight: bold; font-size: 0.85em; }
+  .score-a { background: #276749; }
+  .score-b { background: #2b6cb0; }
+  .score-c { background: #c05621; }
+  .score-d { background: #c53030; }
+  .trend-up   { color: #276749; font-weight: bold; }
+  .trend-flat { color: #718096; }
+  .trend-down { color: #c53030; font-weight: bold; }
+  ul { padding-left: 20px; }
+  li { margin: 5px 0; }
+  .note { font-size: 0.8em; color: #718096; font-style: italic; }
+  hr { border: none; border-top: 1px solid #e2e8f0; margin: 28px 0; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .col-green { border: 1px solid #c6f6d5; background: #f0fff4; border-radius: 6px; padding: 14px 18px; }
+  .col-red   { border: 1px solid #fed7d7; background: #fff5f5; border-radius: 6px; padding: 14px 18px; }
+  .col-green h4, .col-red h4 { margin: 0 0 10px; font-size: 0.95em; }
+</style>
+</head>
+<body>
+
+<h1>Tech-trendanalyse: [TEKNOLOGI]</h1>
+<h3>[TEKNOLOGI] — [Måned] [År]</h3>
+<p class="note">Trendanalyse for utviklere og tech-interesserte. Ikke investeringsråd.</p>
+
+<hr>
+
+<h2>1. Hva er [TEKNOLOGI]?</h2>
+<!-- Ett avsnitt: hva det er, hvem som laget det, kjernekonsept og primære bruksområde -->
+<p>...</p>
+
+<div class="box">
+  <strong>Nøkkelfakta:</strong>
+  <table>
+    <tr><th>Egenskap</th><th>Verdi</th></tr>
+    <tr><td>Skapt av</td><td>...</td></tr>
+    <tr><td>Første release</td><td>...</td></tr>
+    <tr><td>Nåværende stabil versjon</td><td>...</td></tr>
+    <tr><td>Lisens</td><td>...</td></tr>
+    <tr><td>Primærspråk / paradigme</td><td>...</td></tr>
+    <tr><td>Primærbruksområde</td><td>...</td></tr>
+  </table>
+</div>
+
+<hr>
+
+<h2>2. Adopsjonskurve og popularitet</h2>
+
+<table>
+  <tr>
+    <th>Måleparameter</th>
+    <th>Nåværende tall</th>
+    <th>For 1 år siden</th>
+    <th>Trend</th>
+  </tr>
+  <tr><td>GitHub-stjerner</td><td>...</td><td>...</td><td class="trend-up">↑ Stigende</td></tr>
+  <tr><td>GitHub-forks</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Stack Overflow-rangering</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>TIOBE-posisjon</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>RedMonk-rangering</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Pakkenedlastinger/mnd</td><td>...</td><td>...</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>3. Jobbmarked og etterspørsel</h2>
+
+<table>
+  <tr>
+    <th>Parameter</th>
+    <th>Data</th>
+    <th>Kontekst</th>
+  </tr>
+  <tr><td>Stillingsutlysninger (LinkedIn)</td><td>...</td><td>...</td></tr>
+  <tr><td>Vekst i utlysninger siste 12 mnd</td><td>...</td><td>...</td></tr>
+  <tr><td>Medianlønn (USA)</td><td>...</td><td>...</td></tr>
+  <tr><td>Viktigste bransjer</td><td>...</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>4. Økosystem og verktøykjede</h2>
+
+<table>
+  <tr><th>Bibliotek / Verktøy</th><th>Formål</th><th>Adopsjon</th></tr>
+  <tr><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>...</td><td>...</td><td>...</td></tr>
+</table>
+
+<p><strong>Bedriftsstøtte:</strong> ...</p>
+
+<hr>
+
+<h2>5. Konkurrenter og alternativer</h2>
+
+<table>
+  <tr>
+    <th>Alternativ</th>
+    <th>Modenhet</th>
+    <th>Ytelse</th>
+    <th>Læringskurve</th>
+    <th>Jobbmarked</th>
+    <th>Best for</th>
+  </tr>
+  <tr><td>[TEKNOLOGI]</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Alternativ A</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Alternativ B</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>Alternativ C</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>6. Styrker og svakheter</h2>
+
+<div class="two-col">
+  <div class="col-green">
+    <h4>✓ Styrker</h4>
+    <ul>
+      <li>...</li>
+      <li>...</li>
+      <li>...</li>
+    </ul>
+  </div>
+  <div class="col-red">
+    <h4>✗ Svakheter</h4>
+    <ul>
+      <li>...</li>
+      <li>...</li>
+      <li>...</li>
+    </ul>
+  </div>
+</div>
+
+<hr>
+
+<h2>7. Tre scenarier — 2–3 år frem</h2>
+
+<table>
+  <tr>
+    <th>Scenario</th>
+    <th>Forutsetninger</th>
+    <th>Sannsynlig utfall</th>
+    <th>Sannsynlighet</th>
+  </tr>
+  <tr>
+    <td class="green"><strong>Mainstream</strong></td>
+    <td>...</td>
+    <td>...</td>
+    <td>...%</td>
+  </tr>
+  <tr>
+    <td class="orange"><strong>Nisje / stabil</strong></td>
+    <td>...</td>
+    <td>...</td>
+    <td>...%</td>
+  </tr>
+  <tr>
+    <td class="red"><strong>Fading / erstattet</strong></td>
+    <td>...</td>
+    <td>...</td>
+    <td>...%</td>
+  </tr>
+</table>
+
+<hr>
+
+<h2>8. Hvem bør lære dette — og hvem bør vente?</h2>
+
+<table>
+  <tr>
+    <th>Profil</th>
+    <th>Anbefaling</th>
+    <th>Begrunnelse</th>
+  </tr>
+  <tr><td>Backend-utvikler</td><td>...</td><td>...</td></tr>
+  <tr><td>Frontend-utvikler</td><td>...</td><td>...</td></tr>
+  <tr><td>Data scientist / ML</td><td>...</td><td>...</td></tr>
+  <tr><td>DevOps / Platform</td><td>...</td><td>...</td></tr>
+  <tr><td>Tech lead / arkitekt</td><td>...</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>9. Ressurser og kom i gang</h2>
+
+<ul>
+  <li><strong>Offisiell dokumentasjon:</strong> ...</li>
+  <li><strong>Beste kurs / bok:</strong> ...</li>
+  <li><strong>Fellesskapskanal:</strong> ...</li>
+  <li><strong>Prosjektidé for læring:</strong> ...</li>
+</ul>
+
+<hr>
+
+<h2>10. Konklusjon og anbefaling</h2>
+
+<!-- Bruk én av: verdict-learn / verdict-watch / verdict-skip -->
+<div class="verdict verdict-learn">
+  LÆR NÅ — [én setning om hvorfor]
+</div>
+
+<p><strong>Sterkeste grunn til å investere tid:</strong> ...</p>
+<p><strong>Største risiko:</strong> ...</p>
+
+<hr>
+<p class="note">Rapport generert [DATO] · openclaw-analytics</p>
+
+</body>
+</html>

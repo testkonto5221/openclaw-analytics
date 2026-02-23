@@ -12,7 +12,7 @@
 set -e
 
 RAPPORTDIR="/home/lars/.openclaw/workspace/rapporter"
-MALSTI="/home/lars/.openclaw/workspace/templates/investorsammenligning.html"
+MALSTI="/home/lars/.openclaw/workspace/templates/tech-trend.html"
 MOTTAKER="lsoraas@gmail.com"
 BUDSJETT="1.50"
 MODELL="claude-sonnet-4-6"

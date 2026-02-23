@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Georgia, serif; max-width: 860px; margin: auto; padding: 24px; color: #1a1a1a; background: #fff; }
+  h1 { color: #1a2e4a; border-bottom: 3px solid #1a2e4a; padding-bottom: 10px; }
+  h2 { color: #1a2e4a; margin-top: 36px; border-left: 4px solid #3a7bd5; padding-left: 10px; }
+  h3 { color: #2c5282; margin-top: 24px; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th { background: #1a2e4a; color: white; padding: 10px 8px; text-align: left; font-size: 0.9em; }
+  td { padding: 9px 8px; border-bottom: 1px solid #e2e8f0; font-size: 0.9em; }
+  tr:nth-child(even) { background: #f7fafc; }
+  tr:hover { background: #ebf4ff; }
+  .green { color: #276749; }
+  .red { color: #c53030; }
+  .orange { color: #c05621; }
+  .blue { color: #2b6cb0; }
+  .box { border: 1px solid #bee3f8; background: #ebf8ff; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-green { border: 1px solid #c6f6d5; background: #f0fff4; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-red { border: 1px solid #fed7d7; background: #fff5f5; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-yellow { border: 1px solid #fefcbf; background: #fffff0; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  /* Radar ring colours */
+  .adopt  { display:inline-block; background:#276749; color:white; border-radius:4px; padding:2px 8px; font-size:0.85em; font-weight:bold; }
+  .try    { display:inline-block; background:#2b6cb0; color:white; border-radius:4px; padding:2px 8px; font-size:0.85em; font-weight:bold; }
+  .assess { display:inline-block; background:#c05621; color:white; border-radius:4px; padding:2px 8px; font-size:0.85em; font-weight:bold; }
+  .hold   { display:inline-block; background:#718096; color:white; border-radius:4px; padding:2px 8px; font-size:0.85em; font-weight:bold; }
+  /* Momentum badges */
+  .hot    { color: #c53030; font-weight: bold; }
+  .rising { color: #276749; font-weight: bold; }
+  .stable { color: #718096; }
+  .fading { color: #c05621; }
+  ul { padding-left: 20px; }
+  li { margin: 5px 0; }
+  .note { font-size: 0.8em; color: #718096; font-style: italic; }
+  hr { border: none; border-top: 1px solid #e2e8f0; margin: 28px 0; }
+  .radar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .radar-ring { border-radius: 6px; padding: 14px 18px; }
+  .ring-adopt  { border: 2px solid #276749; background: #f0fff4; }
+  .ring-try    { border: 2px solid #2b6cb0; background: #ebf4ff; }
+  .ring-assess { border: 2px solid #c05621; background: #fffff0; }
+  .ring-hold   { border: 2px solid #718096; background: #f7fafc; }
+  .ring-adopt h4  { color: #276749; margin: 0 0 8px; }
+  .ring-try h4    { color: #2b6cb0; margin: 0 0 8px; }
+  .ring-assess h4 { color: #c05621; margin: 0 0 8px; }
+  .ring-hold h4   { color: #718096; margin: 0 0 8px; }
+</style>
+</head>
+<body>
+
+<h1>Sektorradar: [SEKTOR]</h1>
+<h3>[Måned] [År] — hva som er varmt, stigende, stabilt og avtagende</h3>
+<p class="note">Pulsrapport for tech-interesserte. Oppdatert basert på ferske signaler (siste 3–6 måneder).</p>
+
+<hr>
+
+<h2>1. Sektorbilde — [SEKTOR] i dag</h2>
+<!-- 3–5 setninger: hva sektoren handler om, modenhetsnivå, hva som driver den akkurat nå -->
+<p>...</p>
+
+<hr>
+
+<h2>2. Topp 5 prosjekter / selskaper å følge</h2>
+
+<table>
+  <tr>
+    <th>Navn</th>
+    <th>Type</th>
+    <th>Momentum</th>
+    <th>Hvorfor interessant akkurat nå</th>
+  </tr>
+  <tr>
+    <td><strong>...</strong></td>
+    <td>OSS / Startup / Storselskap</td>
+    <td class="hot">🔥 Varmt</td>
+    <td>...</td>
+  </tr>
+  <tr>
+    <td><strong>...</strong></td>
+    <td>...</td>
+    <td class="rising">📈 Stigende</td>
+    <td>...</td>
+  </tr>
+  <tr>
+    <td><strong>...</strong></td>
+    <td>...</td>
+    <td class="stable">➡️ Stabil</td>
+    <td>...</td>
+  </tr>
+  <tr>
+    <td><strong>...</strong></td>
+    <td>...</td>
+    <td class="rising">📈 Stigende</td>
+    <td>...</td>
+  </tr>
+  <tr>
+    <td><strong>...</strong></td>
+    <td>...</td>
+    <td class="fading">📉 Avtagende</td>
+    <td>...</td>
+  </tr>
+</table>
+
+<hr>
+
+<h2>3. Nye OSS-prosjekter verdt å følge (< 12 måneder)</h2>
+
+<table>
+  <tr>
+    <th>Prosjekt</th>
+    <th>Kjernefunksjon</th>
+    <th>GitHub-stjerner</th>
+    <th>Hvorfor spennende</th>
+  </tr>
+  <tr><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>4. Viktige hendelser siste kvartal</h2>
+
+<ul>
+  <li><strong>[Dato]</strong> ...</li>
+  <li><strong>[Dato]</strong> ...</li>
+  <li><strong>[Dato]</strong> ...</li>
+  <li><strong>[Dato]</strong> ...</li>
+</ul>
+
+<hr>
+
+<h2>5. Hype vs. substans</h2>
+
+<table>
+  <tr>
+    <th>Teknologi / begrep</th>
+    <th>Hype-nivå (1–5)</th>
+    <th>Substans-nivå (1–5)</th>
+    <th>Vurdering</th>
+  </tr>
+  <tr><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+  <tr><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+</table>
+
+<hr>
+
+<h2>6. Hvor beveger de kloke hodene seg?</h2>
+<!-- Hvilke prosjekter/selskaper tiltrekker seg de beste ingeniørene og forskerne? -->
+<p>...</p>
+
+<hr>
+
+<h2>7. Risikofaktorer for sektoren</h2>
+
+<ul>
+  <li><strong>Regulatorisk:</strong> ...</li>
+  <li><strong>Teknisk:</strong> ...</li>
+  <li><strong>Markedsmessig:</strong> ...</li>
+  <li><strong>Avhengighetsrisiko:</strong> ...</li>
+</ul>
+
+<hr>
+
+<h2>8. Radar-sammendrag</h2>
+<p class="note">Inspirert av ThoughtWorks Technology Radar.</p>
+
+<div class="radar-grid">
+  <div class="radar-ring ring-adopt">
+    <h4>ADOPT — bruk nå</h4>
+    <ul>
+      <li>...</li>
+      <li>...</li>
+    </ul>
+  </div>
+  <div class="radar-ring ring-try">
+    <h4>TRY — eksperimenter</h4>
+    <ul>
+      <li>...</li>
+      <li>...</li>
+    </ul>
+  </div>
+  <div class="radar-ring ring-assess">
+    <h4>ASSESS — følg med</h4>
+    <ul>
+      <li>...</li>
+      <li>...</li>
+    </ul>
+  </div>
+  <div class="radar-ring ring-hold">
+    <h4>HOLD — avvent</h4>
+    <ul>
+      <li>...</li>
+      <li>...</li>
+    </ul>
+  </div>
+</div>
+
+<hr>
+
+<h2>9. Anbefaling — 3 ting å gjøre de neste 30 dagene</h2>
+
+<div class="box-green">
+  <ol>
+    <li>...</li>
+    <li>...</li>
+    <li>...</li>
+  </ol>
+</div>
+
+<hr>
+<p class="note">Rapport generert [DATO] · openclaw-analytics</p>
+
+</body>
+</html>
