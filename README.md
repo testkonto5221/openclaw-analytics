@@ -58,7 +58,7 @@ FROM="your-sender@gmail.com"
 
 ### Financial analytics
 
-#### `dybdeanalyse "Equinor"`
+#### `fin-dybdeanalyse "Equinor"`
 Deep single-company analysis. Analogous to a sell-side equity research note.
 
 Sections: business overview · financial history (3yr) · valuation · competitive moat · management · risk map · growth catalysts · 3 scenarios (bull/base/bear) · investor profile fit · buy/hold/sell recommendation.
@@ -74,7 +74,7 @@ dybdeanalyse "Capgemini" --model claude-opus-4-6
 
 ---
 
-#### `send-investor-rapport "DNB, Equinor, Aker BP"`
+#### `fin-investor-rapport "DNB, Equinor, Aker BP"`
 Comparative multi-company investor report for 2–4 companies.
 
 Sections: what they do · valuation table · revenue & growth · debt & financial strength · risk map · opportunity map · investor profile fit · scorecard · buy if / avoid if · one-line verdict per company.
@@ -88,7 +88,7 @@ send-investor-rapport "Capgemini, TCS" --to "annen@epost.no" --budget 1.00
 
 ---
 
-#### `sammenlign-rapporter "olje-gass" "fornybar"`
+#### `fin-sammenlign-rapporter "olje-gass" "fornybar"`
 Cross-sector comparison of two previously saved reports (uses report slug or filename).
 
 ```bash
@@ -125,7 +125,7 @@ send-stock-report --tickers "NVDA MSFT" --to "you@example.com" --subject "My wat
 ### Tech analytics
 
 #### `tech-trend-analyse "Rust"`
-Deep technology trend analysis. The tech equivalent of `dybdeanalyse`.
+Deep technology trend analysis. The tech equivalent of `fin-dybdeanalyse`.
 
 Sections: what it is · adoption curve (GitHub stars, Stack Overflow, TIOBE) · job market demand · ecosystem & toolchain · competitors comparison · strengths & weaknesses · 3 scenarios (mainstream/niche/fading) · who should learn it · resources · verdict (LEARN NOW / WATCH / SKIP).
 
@@ -140,7 +140,7 @@ tech-trend-analyse "Kubernetes" --model claude-opus-4-6
 
 ---
 
-#### `sektor-radar "AI infra"`
+#### `tech-sektor-radar "AI infra"`
 Tech sector pulse report. What's hot, what's rising, what's fading — in a given domain.
 
 Domains to try: `AI infra` · `developer tools` · `cybersecurity` · `edge computing` · `observability` · `WebAssembly` · `data engineering`
@@ -157,7 +157,7 @@ sektor-radar "cybersecurity" --budget 1.00
 
 ---
 
-#### `oss-prosjekt-helse "shadcn/ui"`
+#### `tech-oss-helse "shadcn/ui"`
 Open source project health check. Answers: is this safe to build on?
 
 Sections: project overview · contributor health (bus factor, spread) · commit & release activity · issue & PR health · dependency risk · funding & governance · fork ecosystem · health scorecard (6 dimensions, 1–5 score) · recommendation (HEALTHY / WATCHFUL / AT RISK).
@@ -172,8 +172,8 @@ oss-prosjekt-helse "htmx" --to "annen@epost.no"
 
 ---
 
-#### `ai-modell-sammenligning "GPT-4o, Claude Sonnet, Gemini 2.5 Flash"`
-Side-by-side comparison of 2–4 AI models. The tech equivalent of `send-investor-rapport`.
+#### `tech-ai-sammenligning "GPT-4o, Claude Sonnet, Gemini 2.5 Flash"`
+Side-by-side comparison of 2–4 AI models. The tech equivalent of `fin-investor-rapport`.
 
 Sections: model card (context window, cutoff, license, API availability) · benchmarks (MMLU, HumanEval, MATH, GPQA) · pricing per 1M tokens · strengths by use case (code, long docs, multilingual, tool use, structured output, multimodal) · practical API experience (latency, rate limits, SDKs) · weaknesses · who each model fits · winner per scenario.
 
@@ -222,13 +222,13 @@ YYYY-MM-DD_<type>_<slug>.html
 
 | Prefix | Script |
 |--------|--------|
-| `dybde_` | `dybdeanalyse` |
-| `sammenligning_` | `sammenlign-rapporter` |
+| `dybde_` | `fin-dybdeanalyse` |
+| `sammenligning_` | `fin-sammenlign-rapporter` |
 | `tech_` | `tech-trend-analyse` |
-| `radar_` | `sektor-radar` |
-| `oss_` | `oss-prosjekt-helse` |
-| `aimod_` | `ai-modell-sammenligning` |
-| (no prefix) | `send-investor-rapport` |
+| `radar_` | `tech-sektor-radar` |
+| `oss_` | `tech-oss-helse` |
+| `aimod_` | `tech-ai-sammenligning` |
+| (no prefix) | `fin-investor-rapport` |
 
 ---
 
@@ -252,12 +252,12 @@ To add these scripts to the assistant's awareness, add to `workspace/TOOLS.md`:
 | Script | Purpose |
 |--------|---------|
 | `tech-trend-analyse "X"` | Deep tech trend analysis (~$1.50, Sonnet) |
-| `sektor-radar "X"` | Tech sector pulse report (~$0.80) |
-| `oss-prosjekt-helse "X"` | OSS project health check (~$0.40) |
-| `ai-modell-sammenligning "X, Y"` | AI model comparison (~$0.50) |
-| `dybdeanalyse "X"` | Deep company analysis (~$1.50, Sonnet) |
-| `send-investor-rapport "X, Y"` | Multi-company investor report (~$0.80) |
-| `sammenlign-rapporter "X" "Y"` | Compare two saved reports (~$0.80) |
+| `tech-sektor-radar "X"` | Tech sector pulse report (~$0.80) |
+| `tech-oss-helse "X"` | OSS project health check (~$0.40) |
+| `tech-ai-sammenligning "X, Y"` | AI model comparison (~$0.50) |
+| `fin-dybdeanalyse "X"` | Deep company analysis (~$1.50, Sonnet) |
+| `fin-investor-rapport "X, Y"` | Multi-company investor report (~$0.80) |
+| `fin-sammenlign-rapporter "X" "Y"` | Compare two saved reports (~$0.80) |
 | `list-rapporter` | Show all saved reports |
 ```
 
@@ -267,13 +267,13 @@ To add these scripts to the assistant's awareness, add to `workspace/TOOLS.md`:
 
 | Script | Model | Typical cost |
 |--------|-------|-------------|
-| `dybdeanalyse` | Sonnet | $0.50–1.50 |
+| `fin-dybdeanalyse` | Sonnet | $0.50–1.50 |
 | `tech-trend-analyse` | Sonnet | $0.50–1.50 |
-| `send-investor-rapport` | Haiku | $0.20–0.80 |
-| `sammenlign-rapporter` | Haiku | $0.20–0.80 |
-| `sektor-radar` | Haiku | $0.20–0.80 |
-| `ai-modell-sammenligning` | Haiku | $0.20–0.50 |
-| `oss-prosjekt-helse` | Haiku | $0.10–0.40 |
+| `fin-investor-rapport` | Haiku | $0.20–0.80 |
+| `fin-sammenlign-rapporter` | Haiku | $0.20–0.80 |
+| `tech-sektor-radar` | Haiku | $0.20–0.80 |
+| `tech-ai-sammenligning` | Haiku | $0.20–0.50 |
+| `tech-oss-helse` | Haiku | $0.10–0.40 |
 | `send-stock-report` | Haiku | $0.10–0.30 |
 
 All scripts accept `--budget N` to cap spend.

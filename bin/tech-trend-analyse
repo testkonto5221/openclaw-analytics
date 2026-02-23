@@ -136,6 +136,9 @@ LAGRE og SEND:
 
 Dato i dag: $DATO"
 
+TMPOUT=$(mktemp --suffix=.html)
+
+set +e
 claude-kjor \
   --tittel "Tech-analyse: $TEKNOLOGI" \
   --mottaker "$MOTTAKER" \
@@ -144,7 +147,32 @@ claude-kjor \
   --model "$MODELL" \
   --max-budget-usd "$BUDSJETT" \
   --print \
-  "$PROMPT"
+  "$PROMPT" | tee "$TMPOUT"
+CLAUDE_OK=${PIPESTATUS[0]}
+set -e
+
+if [[ $CLAUDE_OK -ne 0 ]]; then
+  echo "FEIL: claude-kjor avsluttet med kode $CLAUDE_OK."
+  rm -f "$TMPOUT"
+  exit $CLAUDE_OK
+fi
+
+if [[ ! -f "$UTFIL" ]]; then
+  if [[ -s "$TMPOUT" ]]; then
+    echo ""
+    echo "Rapport ikke lagret av Claude — lagrer fra stdout-buffer..."
+    cp "$TMPOUT" "$UTFIL"
+    /home/lars/.local/bin/hmail \
+      --to "$MOTTAKER" \
+      --subject "Tech-analyse: $TEKNOLOGI ($DATO)" \
+      --html < "$UTFIL" \
+      && echo "Epost sendt." \
+      || echo "ADVARSEL: Epostsending feilet."
+  else
+    echo "ADVARSEL: Ingen rapport å lagre — stdout var tom."
+  fi
+fi
+rm -f "$TMPOUT"
 
 # --- Legg til i RAG ---
 if [[ -f "$UTFIL" ]]; then

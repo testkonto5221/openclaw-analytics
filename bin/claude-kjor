@@ -55,7 +55,8 @@ for forsok in $(seq 1 $MAX_FORSOK); do
   TMPFEIL=$(mktemp)
 
   # Kjør claude, fang stderr for feilanalyse, la stdout gå gjennom
-  claude "${CLAUDE_ARGS[@]}" 2>"$TMPFEIL"
+  # Unset CLAUDECODE so this works when called from inside a Claude Code session
+  env -u CLAUDECODE claude "${CLAUDE_ARGS[@]}" 2>"$TMPFEIL"
   EXITKODE=$?
   FEILMELDING=$(cat "$TMPFEIL")
   rm -f "$TMPFEIL"
