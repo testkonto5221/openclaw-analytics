@@ -1,0 +1,94 @@
+#!/bin/bash
+# list-rapporter — Vis oversikt over lagrede rapporter (finans og tech)
+#
+# Bruk:
+#   list-rapporter
+#   list-rapporter --rag     (vis også RAG-status per rapport)
+#   list-rapporter --tech    (bare tech-rapporter)
+#   list-rapporter --finans  (bare finansrapporter)
+
+RAPPORTDIR="/home/lars/.openclaw/workspace/rapporter"
+SHOW_RAG=false
+FILTER=""
+
+for arg in "$@"; do
+  case "$arg" in
+    --rag)    SHOW_RAG=true ;;
+    --tech)   FILTER="tech" ;;
+    --finans) FILTER="finans" ;;
+  esac
+done
+
+if [[ ! -d "$RAPPORTDIR" ]] || [[ -z "$(ls -A "$RAPPORTDIR" 2>/dev/null)" ]]; then
+  echo "Ingen rapporter funnet i $RAPPORTDIR"
+  exit 0
+fi
+
+echo "=== Lagrede rapporter ==="
+echo ""
+printf "%-12s  %-8s  %-45s  %s\n" "DATO" "TYPE" "EMNE" "FIL"
+printf "%-12s  %-8s  %-45s  %s\n" "------------" "--------" "---------------------------------------------" "---"
+
+for f in $(ls -t "$RAPPORTDIR"/*.html 2>/dev/null); do
+  base=$(basename "$f" .html)
+  dato="${base%%_*}"
+  rest="${base#*_}"
+
+  # Klassifiser type
+  if [[ "$rest" == dybde_* ]]; then
+    type="DYBDE"
+    kategori="finans"
+    slug="${rest#dybde_}"
+  elif [[ "$rest" == sammenligning_* ]]; then
+    type="SAMML."
+    kategori="finans"
+    slug="${rest#sammenligning_}"
+  elif [[ "$rest" == tech_* ]]; then
+    type="TECH"
+    kategori="tech"
+    slug="${rest#tech_}"
+  elif [[ "$rest" == radar_* ]]; then
+    type="RADAR"
+    kategori="tech"
+    slug="${rest#radar_}"
+  elif [[ "$rest" == oss_* ]]; then
+    type="OSS"
+    kategori="tech"
+    slug="${rest#oss_}"
+  elif [[ "$rest" == aimod_* ]]; then
+    type="AI-MOD"
+    kategori="tech"
+    slug="${rest#aimod_}"
+  else
+    type="SEKTOR"
+    kategori="finans"
+    slug="$rest"
+  fi
+
+  # Filtrer om ønsket
+  if [[ -n "$FILTER" ]] && [[ "$kategori" != "$FILTER" ]]; then
+    continue
+  fi
+
+  label=$(echo "$slug" | tr '-' ' ')
+  printf "%-12s  %-8s  %-45s  %s\n" "$dato" "$type" "$label" "$(basename "$f")"
+done
+
+echo ""
+echo "Totalt: $(ls "$RAPPORTDIR"/*.html 2>/dev/null | wc -l) rapport(er) — filtrer med --tech eller --finans"
+echo "Mappe : $RAPPORTDIR"
+
+if $SHOW_RAG; then
+  echo ""
+  echo "=== RAG-status ==="
+  /home/lars/.local/bin/rag list 2>/dev/null \
+    | grep -E "^(rapport|tech|radar|oss|aimod)_" \
+    || echo "(ingen rapporter i RAG)"
+fi
+
+echo ""
+echo "Tips:"
+echo "  Send på nytt  : hmail --to \"epost\" --subject \"...\" --html < $RAPPORTDIR/<fil>"
+echo "  Sammenlign    : sammenlign-rapporter \"<slug1>\" \"<slug2>\""
+echo "  Finans        : list-rapporter --finans"
+echo "  Tech          : list-rapporter --tech"

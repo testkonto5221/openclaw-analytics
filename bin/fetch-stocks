@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+"""
+fetch-stocks — henter aksjekurser, analytikervurderinger og nøkkeltall via Yahoo Finance.
+
+Bruk:
+  fetch-stocks AKRBP.OL CAP.PA          # spesifikke tickere
+  fetch-stocks AKRBP.OL --full          # + analytiker-info, utvikling, utbytte
+  fetch-stocks --watchlist              # hent forhåndsdefinert bevakningsliste
+
+Vanlige tickere:
+  AKRBP.OL   AkerBP (Oslo Børs)
+  CAP.PA     Capgemini (Euronext Paris)
+  EQNR.OL    Equinor (Oslo Børs)
+  DNB.OL     DNB (Oslo Børs)
+  ORK.OL     Orkla (Oslo Børs)
+  AKER.OL    Aker ASA (Oslo Børs)
+"""
+
+import sys
+from datetime import datetime, timedelta, timezone
+
+try:
+    import yfinance as yf
+except ImportError:
+    print("FEIL: yfinance ikke installert. Kjør: pip3 install yfinance --break-system-packages")
+    sys.exit(1)
+
+WATCHLIST = ["AKRBP.OL", "CAP.PA", "EQNR.OL"]
+
+FULL_MODE = "--full" in sys.argv
+USE_WATCHLIST = "--watchlist" in sys.argv
+
+tickers = [a for a in sys.argv[1:] if not a.startswith("--")]
+if USE_WATCHLIST or not tickers:
+    tickers = WATCHLIST
+
+now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+print(f"=== Aksjekurser hentet {now} ===\n")
+
+for symbol in tickers:
+    try:
+        t = yf.Ticker(symbol)
+        fi = t.fast_info
+
+        price = fi.last_price
+        prev_close = fi.previous_close
+        currency = fi.currency or ""
+        change = price - prev_close if price and prev_close else None
+        change_pct = (change / prev_close * 100) if change and prev_close else None
+        day_high = fi.day_high
+        day_low = fi.day_low
+        high52 = fi.year_high
+        low52 = fi.year_low
+
+        direction = "▲" if (change or 0) >= 0 else "▼"
+        change_str = f"{direction} {change:+.2f} ({change_pct:+.2f}%)" if change is not None else "n/a"
+
+        print(f"━━━ {symbol} ━━━")
+        print(f"  Kurs:          {price:.2f} {currency}")
+        print(f"  Endring:       {change_str}")
+        if day_high and day_low:
+            print(f"  Dagens range:  {day_low:.2f} – {day_high:.2f} {currency}")
+        if low52 and high52:
+            print(f"  52-ukers:      {low52:.2f} – {high52:.2f} {currency}")
+
+        if FULL_MODE:
+            # --- Kursutvikling ---
+            hist = t.history(period="3y")
+            if not hist.empty:
+                price_now = hist["Close"].iloc[-1]
+                print()
+                print("  — Kursutvikling —")
+                for label, days in [("1 måned", 30), ("6 måneder", 182), ("1 år", 365), ("3 år", 1095)]:
+                    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+                    subset = hist[hist.index <= cutoff.strftime("%Y-%m-%d")]
+                    if not subset.empty:
+                        old = subset["Close"].iloc[-1]
+                        pct = (price_now - old) / old * 100
+                        arrow = "▲" if pct >= 0 else "▼"
+                        print(f"  {label+':':<13} {arrow} {pct:+.1f}%  (fra {old:.2f} {currency})")
+
+            # --- Utbytte siste 12 måneder ---
+            divs = t.dividends
+            if not divs.empty:
+                one_year_ago = datetime.now(tz=divs.index.tz) - timedelta(days=365)
+                last_year = divs[divs.index >= one_year_ago]
+                if not last_year.empty:
+                    total = last_year.sum()
+                    print()
+                    print("  — Utbytte siste 12 mnd —")
+                    print(f"  Totalt:        {total:.2f} {currency} ({len(last_year)} utbetalinger)")
+                    for date, amount in last_year.items():
+                        print(f"  {date.strftime('%Y-%m-%d')}:    {amount:.2f} {currency}")
+
+            # --- Nøkkeltall ---
+            info = t.info
+            mktcap = info.get("marketCap")
+            pe = info.get("trailingPE")
+            forward_pe = info.get("forwardPE")
+            eps = info.get("trailingEps")
+            revenue = info.get("totalRevenue")
+            profit_margin = info.get("profitMargins")
+            rec = info.get("recommendationKey", "").upper()
+            target = info.get("targetMeanPrice")
+            num_analysts = info.get("numberOfAnalystOpinions")
+
+            print()
+            print("  — Nøkkeltall —")
+            if mktcap:
+                print(f"  Markedsverdi:  {mktcap/1e9:.1f} mrd {currency}")
+            if pe:
+                print(f"  P/E (ttm):     {pe:.1f}")
+            if forward_pe:
+                print(f"  P/E (forward): {forward_pe:.1f}")
+            if eps:
+                print(f"  EPS (ttm):     {eps:.2f} {currency}")
+            if revenue:
+                print(f"  Omsetning:     {revenue/1e9:.1f} mrd {currency}")
+            if profit_margin:
+                print(f"  Bruttomargin:  {profit_margin*100:.1f}%")
+            # Calculate yield from actual 12-month dividends (Yahoo's value is often wrong)
+            divs = t.dividends
+            if not divs.empty:
+                one_year_ago = datetime.now(tz=divs.index.tz) - timedelta(days=365)
+                last_year_divs = divs[divs.index >= one_year_ago]
+                div_total_local = last_year_divs.sum()
+                if div_total_local and fi.last_price:
+                    calc_yield = div_total_local / fi.last_price * 100
+                    print(f"  Utbytteyield:  {calc_yield:.2f}%")
+
+            print()
+            print("  — Analytikere —")
+            if rec:
+                print(f"  Anbefaling:    {rec}")
+            if target:
+                print(f"  Kursmål:       {target:.2f} {currency}")
+            if num_analysts:
+                print(f"  Ant. analytikere: {num_analysts}")
+
+        print()
+
+    except Exception as e:
+        print(f"━━━ {symbol} ━━━")
+        print(f"  FEIL: {e}")
+        print()

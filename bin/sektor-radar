@@ -1,0 +1,156 @@
+#!/bin/bash
+# sektor-radar — Tech-sektors pulsrapport: hvem er het, hva er på vei opp, hva dabber av
+#
+# Bruk:
+#   sektor-radar "AI infra"
+#   sektor-radar "developer tools" --to "annen@epost.no"
+#   sektor-radar "cybersecurity" --budget 1.00
+#
+# Standardmottaker: lsoraas@gmail.com
+# Rapporter lagres i: /home/lars/.openclaw/workspace/rapporter/
+
+set -e
+
+RAPPORTDIR="/home/lars/.openclaw/workspace/rapporter"
+MALSTI="/home/lars/.openclaw/workspace/templates/investorsammenligning.html"
+MOTTAKER="lsoraas@gmail.com"
+BUDSJETT="0.80"
+SEKTOR=""
+
+# --- Argumentparsing ---
+POSITIONAL=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --to)     MOTTAKER="$2"; shift 2 ;;
+    --budget) BUDSJETT="$2"; shift 2 ;;
+    *)        POSITIONAL+=("$1"); shift ;;
+  esac
+done
+
+SEKTOR="${POSITIONAL[0]:-}"
+
+if [[ -z "$SEKTOR" ]]; then
+  echo "Feil: Oppgi et teknologidomene."
+  echo ""
+  echo "Bruk:    sektor-radar \"AI infra\""
+  echo "         sektor-radar \"developer tools\" --to \"noen@epost.no\""
+  echo "         sektor-radar \"cybersecurity\""
+  exit 1
+fi
+
+DATO=$(date +%Y-%m-%d)
+SLUG=$(echo "$SEKTOR" \
+  | sed 's/[æÆ]/ae/g; s/[øØ]/o/g; s/[åÅ]/a/g' \
+  | tr '[:upper:]' '[:lower:]' \
+  | tr -cs 'a-z0-9' '-' \
+  | sed 's/^-//;s/-$//')
+
+UTFIL="${RAPPORTDIR}/${DATO}_radar_${SLUG}.html"
+RAG_KILDE="radar_${DATO}_${SLUG}"
+
+mkdir -p "$RAPPORTDIR"
+
+# --- Sjekk arkiv: send eksisterende hvis under 7 dager gammel ---
+for kandidat in "$RAPPORTDIR"/*_radar_"${SLUG}".html; do
+  [[ -f "$kandidat" ]] || continue
+  alder_dager=$(( ( $(date +%s) - $(date -r "$kandidat" +%s 2>/dev/null || stat -c %Y "$kandidat" 2>/dev/null || echo 0) ) / 86400 ))
+  if [[ $alder_dager -lt 7 ]]; then
+    LAGRET_DATO=$(basename "$kandidat" .html | cut -d_ -f1)
+    echo "✅ Sektorradar for \"$SEKTOR\" finnes fra ${LAGRET_DATO} — sender fra arkiv."
+    /home/lars/.local/bin/hmail \
+      --to "$MOTTAKER" \
+      --subject "Sektorradar: $SEKTOR ($LAGRET_DATO) [fra arkiv]" \
+      --html < "$kandidat"
+    echo "Sendt fra arkiv: $kandidat"
+    exit 0
+  fi
+done
+
+echo "=== sektor-radar ==="
+echo "Sektor   : $SEKTOR"
+echo "Mottaker : $MOTTAKER"
+echo "Budsjett : USD $BUDSJETT"
+echo "Lagres   : $UTFIL"
+echo ""
+echo "Starter Claude Code CLI..."
+
+PROMPT="Du er en tech-analytiker som lager pulsrapporter over teknologisektorer — hva som er varmt, hva som er på vei opp, og hva som dabber av.
+
+Din oppgave: Lag en sektorradar-rapport for domenet: $SEKTOR
+
+INSTRUKSJONER:
+1. Søk etter ferske data (siste 3-6 måneder) om prosjekter, selskaper, verktøy og trender i $SEKTOR-sektoren: GitHub-aktivitet, oppstartsfinansiering, konferanseagendaer, Twitter/X-buzz, Hacker News-frontside-treff, jobbvekst.
+2. Les malen fra filen: $MALSTI
+3. Generer en komplett HTML-rapport med samme CSS-stiler som malen.
+4. Rapporten skal inneholde ALLE disse seksjonene:
+
+<h2>1. Sektorbilde — $SEKTOR i dag</h2>
+3-5 setninger om hva sektoren handler om, hvor moden den er, og hva som driver den akkurat nå.
+
+<h2>2. Topp 5 prosjekter/selskaper å følge med på</h2>
+Tabell med kolonnene: Navn | Type (OSS/startup/storselskap) | Momentum (🔥 Varmt / 📈 Stigende / ➡️ Stabil / 📉 Avtagende) | Hvorfor det er interessant akkurat nå
+Søk og begrunn hvert valg med konkrete signaler (funding, GitHub-vekst, ansettelser, produktlansering osv.)
+
+<h2>3. Nye OSS-prosjekter verdt å følge (< 12 måneder gamle)</h2>
+Tabell: Prosjekt | Kjernefunksjon | GitHub-stjerner | Hvorfor spennende
+Minst 3 prosjekter. Prioriter høy endringsrate over høy stjernecount.
+
+<h2>4. Viktige hendelser siste kvartal</h2>
+Bullet-liste: oppkjøp, store funding-runder, versjonslanseringer, standardiseringer, store kundeavtaler. Med dato og beløp/kontekst der tilgjengelig.
+
+<h2>5. Hype vs. substans</h2>
+Tabell med 4-6 begreper/teknologier i sektoren:
+| Teknologi/begrep | Hype-nivå (1-5) | Substans-nivå (1-5) | Vurdering |
+Vær ærlig — noen ting er reell substans, andre er hype uten kjerne.
+
+<h2>6. Hvor beveger de kloke hodene seg?</h2>
+Hvilke prosjekter eller selskaper tiltrekker seg de beste ingeniørene og forskerne? Hvilke universiteter/laboratorier er topp på dette området nå? Er det tegn til talent-drain fra etablerte spillere?
+
+<h2>7. Risikofaktorer for sektoren</h2>
+3-5 konkrete risikoer: regulatoriske, tekniske, markedsmessige eller avhengighetsrisikoer som kan bremse utviklingen.
+
+<h2>8. Radar-sammendrag</h2>
+Enkel tabell: 8-10 begreper/prosjekter plassert i kategoriene:
+ADOPT (bruk nå) | TRY (eksperimenter) | ASSESS (følg med) | HOLD (avvent)
+Inspirert av ThoughtWorks Technology Radar.
+
+<h2>9. Anbefaling til deg som leser dette</h2>
+Hva bør en teknologiinteressert person gjøre de neste 30 dagene basert på denne rapporten? 3 konkrete handlinger.
+
+Rapporten skal:
+- Skrives på norsk, men engelske termer beholdes der de er naturlige
+- Være praktisk og konkret — unngå vage generaliteter
+- Bruke CSS-klassene fra malen (box, box-green, box-red, table osv.)
+- IKKE fabrikere tall — søk etter reelle data
+
+LAGRE og SEND:
+1. Lagre rapporten til: $UTFIL
+2. Send med: /home/lars/.local/bin/hmail --to \"$MOTTAKER\" --subject \"Sektorradar: $SEKTOR ($DATO)\" --html < $UTFIL
+3. Bekreft at eposten ble sendt.
+
+Dato i dag: $DATO"
+
+claude-kjor \
+  --tittel "Sektorradar: $SEKTOR" \
+  --mottaker "$MOTTAKER" \
+  -- \
+  --dangerously-skip-permissions \
+  --model claude-haiku-4-5-20251001 \
+  --max-budget-usd "$BUDSJETT" \
+  --print \
+  "$PROMPT"
+
+# --- Legg til i RAG ---
+if [[ -f "$UTFIL" ]]; then
+  echo ""
+  echo "Legger sektorradar til i RAG som: $RAG_KILDE"
+  /home/lars/.local/bin/rag add "$UTFIL" "$RAG_KILDE" \
+    && echo "RAG: OK" \
+    || echo "RAG: FEIL (rapport er likevel lagret på disk)"
+else
+  echo "ADVARSEL: Rapportfil ikke funnet på $UTFIL — RAG-ingestion hoppet over."
+fi
+
+echo ""
+echo "=== Ferdig ==="
+echo "Rapport lagret: $UTFIL"

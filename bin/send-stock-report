@@ -1,0 +1,340 @@
+#!/usr/bin/env python3
+"""
+send-stock-report — fetches stock data + news, formats HTML report, sends via email.
+
+Usage:
+  send-stock-report --tickers "DNB.OL ORK.OL CAP.PA TCS.NS NVDA" --to "lsoraas@gmail.com"
+  send-stock-report --tickers "AKRBP.OL EQNR.OL" --to "lsoraas@gmail.com" --subject "Custom subject"
+"""
+
+import sys, os, json, argparse, subprocess, urllib.request
+from datetime import datetime, timedelta, timezone
+
+try:
+    import yfinance as yf
+except ImportError:
+    print("FEIL: yfinance ikke installert. Kjør: pip3 install yfinance --break-system-packages")
+    sys.exit(1)
+
+# --- Args ---
+parser = argparse.ArgumentParser()
+parser.add_argument("--tickers", required=True, help="Space-separated ticker symbols")
+parser.add_argument("--to", required=True, help="Recipient email address")
+parser.add_argument("--subject", default="", help="Email subject (auto-generated if omitted)")
+args, _ = parser.parse_known_args()  # ignore extra args like --timeout passed by exec tool
+
+tickers = args.tickers.split()
+today = datetime.now().strftime("%d. %b %Y")
+today_long = datetime.now().strftime("%-d. %B %Y")
+subject = args.subject or f"Aksjerapport: {', '.join(tickers)} – {today}"
+
+# --- Fetch stock data ---
+def get_stock(symbol):
+    try:
+        t = yf.Ticker(symbol)
+        fi = t.fast_info
+        info = t.info
+        hist = t.history(period="3y")
+        divs = t.dividends
+
+        price = fi.last_price
+        prev_close = fi.previous_close
+        currency = fi.currency or ""
+        change = price - prev_close if price and prev_close else 0
+        change_pct = (change / prev_close * 100) if prev_close else 0
+
+        dev = {}
+        if not hist.empty:
+            now_price = hist["Close"].iloc[-1]
+            for label, days in [("1M", 30), ("6M", 182), ("1Y", 365), ("3Y", 1095)]:
+                cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+                subset = hist[hist.index <= cutoff.strftime("%Y-%m-%d")]
+                if not subset.empty:
+                    old = subset["Close"].iloc[-1]
+                    dev[label] = (now_price - old) / old * 100
+
+        div_total = 0
+        div_list = []
+        if not divs.empty:
+            one_year_ago = datetime.now(tz=divs.index.tz) - timedelta(days=365)
+            last_year = divs[divs.index >= one_year_ago]
+            div_total = last_year.sum()
+            div_list = [(d.strftime("%Y-%m-%d"), v) for d, v in last_year.items()]
+
+        return {
+            "symbol": symbol,
+            "name": info.get("shortName", symbol),
+            "price": price,
+            "currency": currency,
+            "change": change,
+            "change_pct": change_pct,
+            "dev": dev,
+            "div_total": div_total,
+            "div_list": div_list,
+            "mktcap": info.get("marketCap"),
+            "pe": info.get("trailingPE"),
+            "forward_pe": info.get("forwardPE"),
+            "eps": info.get("trailingEps"),
+            "div_yield": (div_total / price) if div_total and price else info.get("trailingAnnualDividendYield"),
+            "rec": info.get("recommendationKey", "").upper().replace("_", " "),
+            "target": info.get("targetMeanPrice"),
+            "num_analysts": info.get("numberOfAnalystOpinions"),
+        }
+    except Exception as e:
+        return {"symbol": symbol, "error": str(e)}
+
+# --- Fetch news via Perplexity/OpenRouter ---
+def get_news(company_name):
+    try:
+        auth_file = "/home/lars/.openclaw/agents/main/agent/auth-profiles.json"
+        with open(auth_file) as f:
+            profiles = json.load(f)
+        api_key = profiles["profiles"]["openrouter:default"]["key"]
+
+        payload = json.dumps({
+            "model": "perplexity/sonar",
+            "messages": [{"role": "user", "content":
+                f"Give me the 3 most important recent news items about {company_name} stock in 2026. "
+                f"For each: one sentence summary. Return as a plain numbered list, no markdown."}],
+            "max_tokens": 300
+        }).encode()
+
+        req = urllib.request.Request(
+            "https://openrouter.ai/api/v1/chat/completions",
+            data=payload,
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=15) as r:
+            result = json.load(r)
+        return result["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        return f"(Nyheter ikke tilgjengelig: {e})"
+
+# --- Helpers ---
+def fmt_num(n, decimals=2):
+    return f"{n:,.{decimals}f}" if n is not None else "—"
+
+def pct_span(pct, override=None):
+    if pct is None:
+        return '<span class="neutral">—</span>'
+    cls = "positive" if pct >= 0 else "negative"
+    a = "▲" if pct >= 0 else "▼"
+    text = override if override is not None else f"{a} {abs(pct):.1f}%"
+    return f'<span class="{cls}">{text}</span>'
+
+def rating_badge(rec):
+    cls_map = {"STRONG BUY": "strong-buy", "BUY": "buy", "HOLD": "hold",
+               "UNDERPERFORM": "sell", "SELL": "sell"}
+    cls = cls_map.get(rec, "neutral-badge")
+    return f'<span class="rating {cls}">{rec or "—"}</span>'
+
+def metric_row(label, value):
+    return f'<div class="metric-row"><span class="metric-label">{label}:</span><span class="metric-value">{value}</span></div>'
+
+# --- Fetch data ---
+print(f"Fetching data for: {', '.join(tickers)}", file=sys.stderr)
+stocks = [get_stock(t) for t in tickers]
+valid = [s for s in stocks if "error" not in s]
+failed = [s for s in stocks if "error" in s]
+
+print("Fetching news...", file=sys.stderr)
+for s in valid:
+    print(f"  {s['symbol']}...", file=sys.stderr)
+    s["news"] = get_news(s["name"])
+
+# --- CSS ---
+CSS = """
+body { font-family: Arial, sans-serif; max-width: 860px; margin: auto; color: #222;
+       background: #f4f6f8; padding: 20px; font-size: 14px; }
+h1 { color: #1a1a2e; border-bottom: 3px solid #0066cc; padding-bottom: 10px; }
+h2 { color: #0066cc; margin-top: 30px; border-left: 4px solid #0066cc; padding-left: 10px; }
+h3 { color: #333; margin-top: 16px; margin-bottom: 8px; }
+table { width: 100%; border-collapse: collapse; margin: 12px 0; background: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+th { background: #1a1a2e; color: white; padding: 10px 12px; text-align: left; font-weight: bold; }
+th.r { text-align: right; }
+td { padding: 9px 12px; border-bottom: 1px solid #eee; }
+td.r { text-align: right; }
+tr:last-child td { border-bottom: none; }
+tr:hover { background: #f5f5f5; }
+.company-section { background: white; margin: 24px 0; padding: 18px 20px;
+                   border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.07); }
+.price-row { display: flex; align-items: baseline; gap: 16px; margin-bottom: 14px; }
+.price-big { font-size: 28px; font-weight: bold; }
+.price-change { font-size: 18px; }
+.two-col { display: flex; gap: 32px; margin: 12px 0; }
+.two-col > div { flex: 1; }
+.metric-row { display: flex; justify-content: space-between; padding: 7px 0;
+              border-bottom: 1px solid #f0f0f0; }
+.metric-row:last-child { border-bottom: none; }
+.metric-label { color: #555; }
+.metric-value { text-align: right; font-weight: 500; }
+.positive { color: #2d7a3a; font-weight: bold; }
+.negative { color: #c41e3a; font-weight: bold; }
+.neutral { color: #666; }
+.rating { padding: 3px 9px; border-radius: 3px; font-weight: bold;
+          font-size: 13px; display: inline-block; }
+.strong-buy { background: #1b5e20; color: white; }
+.buy { background: #2d7a3a; color: white; }
+.hold { background: #f59e0b; color: white; }
+.sell { background: #c41e3a; color: white; }
+.neutral-badge { background: #757575; color: white; }
+.news-box { background: #f8f9fa; border-left: 3px solid #0066cc;
+            padding: 10px 14px; margin: 10px 0; line-height: 1.7; }
+.summary-section { background: white; padding: 18px 20px; border-radius: 6px;
+                   box-shadow: 0 2px 4px rgba(0,0,0,0.07); margin-top: 24px; }
+.summary-section ul { margin: 8px 0; padding-left: 20px; line-height: 1.8; }
+hr { border: none; border-top: 2px solid #ddd; margin: 28px 0; }
+.footer { color: #999; font-size: 12px; text-align: center; margin-top: 24px; line-height: 1.8; }
+"""
+
+# --- Build HTML ---
+parts = [f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>{CSS}</style>
+</head>
+<body>
+<h1>&#128202; Aksjerapport &#8211; {today_long}</h1>
+<p style="color:#666;font-size:13px"><strong>Data fra:</strong> Yahoo Finance &nbsp;&middot;&nbsp;
+<strong>Nyheter:</strong> Perplexity &nbsp;&middot;&nbsp; Kurser kan v&aelig;re 15&#8211;20 min forsinket</p>
+"""]
+
+# --- Comparison table (top) ---
+if len(valid) > 1:
+    parts.append("""<h2>&#128200; Sammenligning &#8211; Alle selskaper</h2>
+<table>
+<thead><tr>
+  <th>Selskap</th><th class="r">Kurs</th><th class="r">1 &aring;r</th>
+  <th class="r">3 &aring;r</th><th class="r">Utbytteyield</th>
+  <th class="r">P/E</th><th>Anbefaling</th><th class="r">Kursm&aring;l oppside</th>
+</tr></thead><tbody>""")
+    for s in valid:
+        upside = ((s["target"] / s["price"]) - 1) * 100 if s.get("target") and s.get("price") else None
+        dy = f"{s['div_yield']*100:.2f}%" if s.get("div_yield") else "&#8212;"
+        upside_html = pct_span(upside, f"{upside:+.1f}%") if upside is not None else "&#8212;"
+        parts.append(f"""<tr>
+  <td><strong>{s['name']}</strong><br><small style="color:#888">{s['symbol']}</small></td>
+  <td class="r">{fmt_num(s['price'])} {s['currency']}</td>
+  <td class="r">{pct_span(s['dev'].get('1Y'))}</td>
+  <td class="r">{pct_span(s['dev'].get('3Y'))}</td>
+  <td class="r">{dy}</td>
+  <td class="r">{fmt_num(s.get('pe'), 1)}</td>
+  <td>{rating_badge(s.get('rec', ''))}</td>
+  <td class="r">{upside_html}</td>
+</tr>""")
+    parts.append("</tbody></table>")
+
+parts.append("<hr>")
+
+# --- Per-company sections ---
+for s in valid:
+    upside = ((s["target"] / s["price"]) - 1) * 100 if s.get("target") and s.get("price") else None
+    price_cls = "positive" if s["change_pct"] >= 0 else "negative"
+    a_str = "&#9650;" if s["change_pct"] >= 0 else "&#9660;"
+
+    left_metrics = [
+        ("1-&aring;rs endring", pct_span(s['dev'].get('1Y'))),
+        ("6 mnd endring",       pct_span(s['dev'].get('6M'))),
+        ("1 mnd endring",       pct_span(s['dev'].get('1M'))),
+        ("3-&aring;rs endring", pct_span(s['dev'].get('3Y'))),
+    ]
+    right_metrics = [
+        ("Markedsverdi", f"{s['mktcap']/1e9:.1f} mrd {s['currency']}" if s.get('mktcap') else "&#8212;"),
+        ("P/E (ttm)",     fmt_num(s.get('pe'), 1)),
+        ("P/E (forward)", fmt_num(s.get('forward_pe'), 1)),
+        ("EPS",           f"{fmt_num(s.get('eps'))} {s['currency']}"),
+        ("Utbytteyield",  f"{s['div_yield']*100:.2f}%" if s.get('div_yield') else "&#8212;"),
+    ]
+
+    left_html  = "".join(metric_row(k, v) for k, v in left_metrics)
+    right_html = "".join(metric_row(k, v) for k, v in right_metrics)
+
+    if s["div_list"]:
+        detail = " &nbsp;&middot;&nbsp; ".join(
+            f"{d}: <strong>{v:.2f} {s['currency']}</strong>" for d, v in s["div_list"])
+        div_str = f'<p><strong>Utbytte siste 12 mnd:</strong> <strong>{s["div_total"]:.2f} {s["currency"]}</strong> totalt &nbsp;&middot;&nbsp; {detail}</p>'
+    else:
+        div_str = ""
+
+    upside_str = f" &nbsp;&middot;&nbsp; Oppside: {pct_span(upside, f'{upside:+.1f}%')}" if upside is not None else ""
+    analyst_str = f'{rating_badge(s.get("rec", ""))} &nbsp; Kursm&aring;l: <strong>{fmt_num(s.get("target"))} {s["currency"]}</strong> ({s.get("num_analysts", "?")} analytikere){upside_str}'
+
+    news_html = s["news"].replace("\n", "<br>")
+
+    parts.append(f"""
+<div class="company-section">
+  <h2 style="margin-top:0;border-left:none;padding-left:0">{s['name']} ({s['symbol']})</h2>
+  <div class="price-row">
+    <span class="price-big {price_cls}">{fmt_num(s['price'])} {s['currency']}</span>
+    <span class="price-change {price_cls}">{a_str} {abs(s['change_pct']):.2f}% ({s['change']:+.2f})</span>
+  </div>
+  <div class="two-col">
+    <div>{left_html}</div>
+    <div>{right_html}</div>
+  </div>
+  {div_str}
+  <h3>&#128176; Analytiker-anbefaling</h3>
+  <p>{analyst_str}</p>
+  <h3>&#128240; Siste nyheter</h3>
+  <div class="news-box">{news_html}</div>
+</div>""")
+
+# --- Summary section ---
+strong = sorted([s for s in valid if s['dev'].get('1Y', 0) > 0],
+                key=lambda x: x['dev'].get('1Y', 0), reverse=True)
+weak   = sorted([s for s in valid if s['dev'].get('1Y', 0) <= 0],
+                key=lambda x: x['dev'].get('1Y', 0))
+
+if strong or weak:
+    parts.append('<div class="summary-section"><h2 style="margin-top:0;border-left:none;padding-left:0">&#127919; Sammendrag</h2>')
+    if strong:
+        parts.append('<h3>&#128640; Positiv utvikling (siste &aring;r)</h3><ul>')
+        for s in strong:
+            upside = ((s["target"] / s["price"]) - 1) * 100 if s.get("target") and s.get("price") else None
+            rec_str = f" &nbsp;|&nbsp; {s.get('rec', '')}" if s.get('rec') else ""
+            up_str  = f" &nbsp;|&nbsp; Analytiker oppside: {upside:+.1f}%" if upside is not None else ""
+            parts.append(f'<li><strong>{s["name"]} ({s["symbol"]}): {s["dev"]["1Y"]:+.1f}% (1 &aring;r)</strong>{rec_str}{up_str}</li>')
+        parts.append('</ul>')
+    if weak:
+        parts.append('<h3>&#9888;&#65039; Under press (siste &aring;r)</h3><ul>')
+        for s in weak:
+            upside = ((s["target"] / s["price"]) - 1) * 100 if s.get("target") and s.get("price") else None
+            rec_str = f" &nbsp;|&nbsp; {s.get('rec', '')}" if s.get('rec') else ""
+            up_str  = f" &nbsp;|&nbsp; Analytiker oppside: {upside:+.1f}%" if upside is not None else ""
+            parts.append(f'<li><strong>{s["name"]} ({s["symbol"]}): {s["dev"]["1Y"]:+.1f}% (1 &aring;r)</strong>{rec_str}{up_str}</li>')
+        parts.append('</ul>')
+    parts.append('</div>')
+
+if failed:
+    parts.append(f'<p style="color:#c41e3a"><strong>Feil ved henting:</strong> {", ".join(s["symbol"] for s in failed)}</p>')
+
+parts.append(f"""<p class="footer">
+&#128202; Data hentet {today_long}. Kurser er ~15&#8211;20 min forsinket utenfor b&oslash;rstid.<br>
+&#128240; Nyheter fra Perplexity Sonar &nbsp;&middot;&nbsp; &#128188; Analytiker-estimater fra Yahoo Finance.<br>
+<strong>Ansvarsfraskrivelse:</strong> Dette er informativ analyse, ikke investeringsr&aring;d.
+</p>
+</body>
+</html>""")
+
+html = "\n".join(parts)
+
+# --- Send ---
+import tempfile
+with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False) as f:
+    f.write(html)
+    tmpfile = f.name
+
+try:
+    result = subprocess.run(
+        ["/home/lars/.local/bin/hmail", "--to", args.to, "--subject", subject, "--html"],
+        input=html, text=True, capture_output=True
+    )
+    if result.returncode == 0:
+        print(f"✓ Rapport sendt til {args.to}")
+    else:
+        print(f"FEIL ved sending: {result.stderr}", file=sys.stderr)
+        sys.exit(1)
+finally:
+    os.unlink(tmpfile)

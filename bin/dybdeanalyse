@@ -1,0 +1,179 @@
+#!/bin/bash
+# dybdeanalyse — Ekstra dyp analyse av ett enkelt selskap via Claude
+#
+# Bruk:
+#   dybdeanalyse "Equinor"
+#   dybdeanalyse "Aker BP" --to "annen@epost.no"
+#   dybdeanalyse "Mowi" --budget 3.00
+#   dybdeanalyse "Capgemini" --model claude-opus-4-6
+#
+# Bruker Sonnet (kraftigere enn Haiku) for dypere resonnering.
+# Standardmottaker: lsoraas@gmail.com
+
+set -e
+
+RAPPORTDIR="/home/lars/.openclaw/workspace/rapporter"
+MALSTI="/home/lars/.openclaw/workspace/templates/investorsammenligning.html"
+MOTTAKER="lsoraas@gmail.com"
+BUDSJETT="2.00"
+MODELL="claude-sonnet-4-6"
+SELSKAP=""
+
+# --- Argumentparsing ---
+POSITIONAL=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --to)     MOTTAKER="$2"; shift 2 ;;
+    --budget) BUDSJETT="$2"; shift 2 ;;
+    --model)  MODELL="$2"; shift 2 ;;
+    *)        POSITIONAL+=("$1"); shift ;;
+  esac
+done
+
+SELSKAP="${POSITIONAL[0]:-}"
+
+if [[ -z "$SELSKAP" ]]; then
+  echo "Feil: Oppgi ett selskapsnavn."
+  echo ""
+  echo "Bruk:    dybdeanalyse \"Equinor\""
+  echo "         dybdeanalyse \"Aker BP\" --to \"noen@epost.no\""
+  echo "         dybdeanalyse \"Mowi\" --model claude-opus-4-6"
+  exit 1
+fi
+
+DATO=$(date +%Y-%m-%d)
+SLUG=$(echo "$SELSKAP" \
+  | sed 's/[æÆ]/ae/g; s/[øØ]/o/g; s/[åÅ]/a/g' \
+  | tr '[:upper:]' '[:lower:]' \
+  | tr -cs 'a-z0-9' '-' \
+  | sed 's/^-//;s/-$//')
+
+UTFIL="${RAPPORTDIR}/${DATO}_dybde_${SLUG}.html"
+RAG_KILDE="dybde_${DATO}_${SLUG}"
+
+mkdir -p "$RAPPORTDIR"
+
+# --- Sjekk arkiv: send eksisterende hvis under 7 dager gammel ---
+for kandidat in "$RAPPORTDIR"/*_dybde_"${SLUG}".html; do
+  [[ -f "$kandidat" ]] || continue
+  alder_dager=$(( ( $(date +%s) - $(date -r "$kandidat" +%s 2>/dev/null || stat -c %Y "$kandidat" 2>/dev/null || echo 0) ) / 86400 ))
+  if [[ $alder_dager -lt 7 ]]; then
+    LAGRET_DATO=$(basename "$kandidat" .html | cut -d_ -f1)
+    echo "✅ Denne dybdeanalysen lå allerede klar i arkivet fra ${LAGRET_DATO} — sender den til deg nå, ingen ny analyse nødvendig."
+    /home/lars/.local/bin/hmail \
+      --to "$MOTTAKER" \
+      --subject "Dybdeanalyse: $SELSKAP ($LAGRET_DATO) [fra arkiv]" \
+      --html < "$kandidat"
+    echo "Sendt fra arkiv: $kandidat"
+    exit 0
+  fi
+done
+
+echo "=== dybdeanalyse ==="
+echo "Selskap   : $SELSKAP"
+echo "Modell    : $MODELL"
+echo "Mottaker  : $MOTTAKER"
+echo "Budsjett  : USD $BUDSJETT"
+echo "Lagres    : $UTFIL"
+echo "RAG-kilde : $RAG_KILDE"
+echo ""
+echo "Starter Claude Code CLI (dette tar lenger tid enn vanlig)..."
+
+PROMPT="Du er en topprangert aksjeanalytiker med 20 års erfaring fra et ledende meglerhus.
+Din oppgave: Lag en EKSTRA DYP og grundig analyse av selskapet: $SELSKAP
+
+Ta deg god tid. Tenk grundig gjennom hvert punkt. Dette er ikke en overfladisk oppsummering — det er en fullstendig investeringsanalyse.
+
+DATAINNSAMLING (gjør grundige websøk for hvert punkt):
+- Nåværende kurs og markedsverdi
+- Fullstendig resultatregnskap siste 3 år (omsetning, EBITDA, EBIT, nettoresultat)
+- Balanse: eiendeler, gjeld, egenkapital — beregn gjeldsgrad og soliditet
+- Kontantstrøm: operasjonell, investerings- og finansieringsaktiviteter
+- Alle relevante verdsettelsesmultipler: P/E, forward P/E, EV/EBITDA, P/B, P/S, EV/EBIT
+- Direkteavkastning og utbyttehistorikk siste 5 år
+- Analytikerkonsensus, kursmål og anbefalingsfordeling
+- Innsidertransaksjoner og eierstruktur (hvem eier mest?)
+- Siste kvartalsrapport — nøkkeltall og ledelsens kommentarer
+- Konkurrenter og markedsandeler
+- Eventuelle pågående oppkjøp, fusjoner eller strategiske endringer
+
+ANALYSESTRUKTUR — generer komplett HTML med samme CSS som malen i $MALSTI:
+
+<h2>1. Selskapet i ett avsnitt</h2>
+Hva gjør selskapet, hvordan tjener det penger, og hva er kjerneforretningen?
+
+<h2>2. Finansiell dybdeanalyse</h2>
+Tabell med 3 år historikk (omsetning, EBITDA-margin, nettomarginen, ROE, ROCE).
+Trendanalyse: er selskapet på vei opp eller ned?
+
+<h2>3. Verdsettelse — Er aksjen billig eller dyr?</h2>
+Alle multipler mot historisk snitt og mot sektoren.
+Enkel DCF-tankegang: hva må skje for at prisen er rettferdig?
+
+<h2>4. Konkurranseposisjon og vollgrav</h2>
+Hva beskytter selskapet mot konkurrenter (patenter, merkevare, stordriftsfordeler, nettverkseffekter, byttekostnader)?
+Hvem er de tre største konkurrentene, og hvordan måler selskapet seg?
+
+<h2>5. Ledelse og eierskap</h2>
+Hvem leder selskapet? Track record? Innsideeierskap (skin in the game)?
+Største aksjonærer — er det langsiktige eiere eller spekulanter?
+
+<h2>6. Risikokart (grundig)</h2>
+Tabell med minimum 6 risikoer, sannsynlighet (lav/middels/høy) og konsekvens (lav/middels/høy).
+
+<h2>7. Muligheter og vekstkatalysatorer</h2>
+Hva kan drive kursen opp de neste 1–3 årene? Vær konkret.
+
+<h2>8. Tre scenarier</h2>
+Tabell:
+| Scenario | Forutsetninger | Estimert kurs om 3 år | Sannsynlighet |
+| Bull-case | ... | NOK/EUR/USD X | XX% |
+| Base-case | ... | NOK/EUR/USD X | XX% |
+| Bear-case | ... | NOK/EUR/USD X | XX% |
+
+<h2>9. Hvem passer denne aksjen for?</h2>
+Tabell med investorprofiler (utbytte/vekst/verdi/defensiv) og egnethet (🟢/🟡/🔴).
+
+<h2>10. Konklusjon og anbefaling</h2>
+Tydelig anbefaling: KJØP / HOLD / SELG — og hvorfor.
+Hva er den viktigste grunnen til å kjøpe? Hva er den viktigste risikoen?
+Hvilket kursnivå ville vært et godt kjøpspunkt?
+
+Rapporten skal:
+- Skrives på norsk
+- Tilpasses en privat småinvestor uten finansbakgrunn
+- Forklare alle faguttrykk underveis
+- Bruke CSS-stiler fra malen (box, box-green, box-red, table, verdict osv.)
+- IKKE fabrikere tall — søk etter alle data
+
+LAGRE og SEND:
+1. Lagre rapporten til: $UTFIL
+2. Send med: /home/lars/.local/bin/hmail --to \"$MOTTAKER\" --subject \"Dybdeanalyse: $SELSKAP ($DATO)\" --html < $UTFIL
+3. Bekreft at eposten ble sendt.
+
+Dato i dag: $DATO"
+
+claude-kjor \
+  --tittel "Dybdeanalyse: $SELSKAP" \
+  --mottaker "$MOTTAKER" \
+  -- \
+  --dangerously-skip-permissions \
+  --model "$MODELL" \
+  --max-budget-usd "$BUDSJETT" \
+  --print \
+  "$PROMPT"
+
+# --- Legg til i RAG ---
+if [[ -f "$UTFIL" ]]; then
+  echo ""
+  echo "Legger dybdeanalyse til i RAG som: $RAG_KILDE"
+  /home/lars/.local/bin/rag add "$UTFIL" "$RAG_KILDE" \
+    && echo "RAG: OK" \
+    || echo "RAG: FEIL (rapport er likevel lagret på disk)"
+else
+  echo "ADVARSEL: Rapportfil ikke funnet på $UTFIL — RAG-ingestion hoppet over."
+fi
+
+echo ""
+echo "=== Ferdig ==="
+echo "Rapport lagret: $UTFIL"

@@ -1,0 +1,159 @@
+#!/bin/bash
+# oss-prosjekt-helse — Helsesjekk av et open source-prosjekt via Claude Code CLI
+#
+# Bruk:
+#   oss-prosjekt-helse "shadcn/ui"
+#   oss-prosjekt-helse "tauri-apps/tauri" --to "annen@epost.no"
+#   oss-prosjekt-helse "htmx" --budget 0.50
+#
+# Standardmottaker: lsoraas@gmail.com
+
+set -e
+
+RAPPORTDIR="/home/lars/.openclaw/workspace/rapporter"
+MALSTI="/home/lars/.openclaw/workspace/templates/investorsammenligning.html"
+MOTTAKER="lsoraas@gmail.com"
+BUDSJETT="0.40"
+PROSJEKT=""
+
+# --- Argumentparsing ---
+POSITIONAL=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --to)     MOTTAKER="$2"; shift 2 ;;
+    --budget) BUDSJETT="$2"; shift 2 ;;
+    *)        POSITIONAL+=("$1"); shift ;;
+  esac
+done
+
+PROSJEKT="${POSITIONAL[0]:-}"
+
+if [[ -z "$PROSJEKT" ]]; then
+  echo "Feil: Oppgi et prosjektnavn (GitHub-repo eller prosjektnavn)."
+  echo ""
+  echo "Bruk:    oss-prosjekt-helse \"shadcn/ui\""
+  echo "         oss-prosjekt-helse \"tauri-apps/tauri\" --to \"noen@epost.no\""
+  echo "         oss-prosjekt-helse \"htmx\""
+  exit 1
+fi
+
+DATO=$(date +%Y-%m-%d)
+SLUG=$(echo "$PROSJEKT" \
+  | sed 's/[æÆ]/ae/g; s/[øØ]/o/g; s/[åÅ]/a/g' \
+  | tr '[:upper:]' '[:lower:]' \
+  | tr -cs 'a-z0-9' '-' \
+  | sed 's/^-//;s/-$//')
+
+UTFIL="${RAPPORTDIR}/${DATO}_oss_${SLUG}.html"
+RAG_KILDE="oss_${DATO}_${SLUG}"
+
+mkdir -p "$RAPPORTDIR"
+
+# --- Sjekk arkiv: send eksisterende hvis under 14 dager gammel ---
+for kandidat in "$RAPPORTDIR"/*_oss_"${SLUG}".html; do
+  [[ -f "$kandidat" ]] || continue
+  alder_dager=$(( ( $(date +%s) - $(date -r "$kandidat" +%s 2>/dev/null || stat -c %Y "$kandidat" 2>/dev/null || echo 0) ) / 86400 ))
+  if [[ $alder_dager -lt 14 ]]; then
+    LAGRET_DATO=$(basename "$kandidat" .html | cut -d_ -f1)
+    echo "✅ OSS-helsesjekk av \"$PROSJEKT\" finnes fra ${LAGRET_DATO} — sender fra arkiv."
+    /home/lars/.local/bin/hmail \
+      --to "$MOTTAKER" \
+      --subject "OSS-helsesjekk: $PROSJEKT ($LAGRET_DATO) [fra arkiv]" \
+      --html < "$kandidat"
+    echo "Sendt fra arkiv: $kandidat"
+    exit 0
+  fi
+done
+
+echo "=== oss-prosjekt-helse ==="
+echo "Prosjekt : $PROSJEKT"
+echo "Mottaker : $MOTTAKER"
+echo "Budsjett : USD $BUDSJETT"
+echo "Lagres   : $UTFIL"
+echo ""
+echo "Starter Claude Code CLI..."
+
+PROMPT="Du er en open source-analytiker som vurderer helsen og bærekraften til OSS-prosjekter.
+
+Din oppgave: Gjennomfør en helsesjekk av OSS-prosjektet: $PROSJEKT
+
+INSTRUKSJONER:
+1. Søk etter oppdatert data om $PROSJEKT på GitHub og andre kilder: bidragsytertall, commit-frekvens, issue-statistikk, fork-aktivitet, siste release-dato, licenstype, finansiering og sponsorer.
+2. Les malen fra filen: $MALSTI
+3. Generer en komplett HTML-rapport med samme CSS-stiler som malen.
+4. Rapporten skal inneholde ALLE disse seksjonene:
+
+<h2>1. Prosjektoversikt</h2>
+Hva gjør prosjektet, hvem startet det, hvilket språk/stack, hvilken lisens, og hva er primærbruksområdet?
+
+<h2>2. Bidragsyter-helse</h2>
+Tabell med: Totalt antall bidragsytere | Aktive siste 90 dager | Top-3 bidragsytere (% av commits) | Bus factor (hvor mange personer kan forsvinne uten at prosjektet stopper?) | Geografisk/organisatorisk spredning
+Vurder: er prosjektet avhengig av én person/ett selskap?
+
+<h2>3. Commit- og release-aktivitet</h2>
+Commits per måned siste 6 måneder (tabellform), dato for siste commit, dato for siste stabile release, release-frekvens (månedlig/kvartalsvis/sjelden). Er aktiviteten stigende, stabil eller fallende?
+
+<h2>4. Issue- og PR-helse</h2>
+Tabell: Åpne issues | Lukkede issues siste 90 dager | Median responstid på nye issues | Åpne PR-er | PR merge-rate | Andel issues som er over 6 måneder gamle uten respons
+Er maintainerne responsive?
+
+<h2>5. Avhengighetsrisiko</h2>
+Kritiske avhengigheter som kan skape problemer (utdaterte pakker, usikre avhengigheter, pakker uten aktiv vedlikehold). Sjekk GitHub Security Advisories om tilgjengelig. Er det kjente CVE-er?
+
+<h2>6. Finansiering og governance</h2>
+Er prosjektet sponset av et selskap? Støttet av en stiftelse (Apache, CNCF, Linux Foundation osv.)? Har det GitHub Sponsors eller OpenCollective? Hva skjer med prosjektet hvis sponsoren trekker seg?
+
+<h2>7. Fork-økosystem</h2>
+Antall forks. Er det aktive forks som har gått videre med egne features? Er det tegn på at community-et bygger *på* prosjektet (plugins, extensions) eller *rundt* det (konkurrerende forks)?
+
+<h2>8. Samlet helsevurdering</h2>
+Tabell med disse dimensjonene, score 1-5 og begrunnelse:
+| Dimensjon | Score (1-5) | Vurdering |
+| Bidragsyterspredning | | |
+| Vedlikeholdsaktivitet | | |
+| Issue-respons | | |
+| Avhengighetsrisiko (lav = bra) | | |
+| Finansieringssikkerhet | | |
+| Community-størrelse | | |
+
+Samlet dom: 🟢 Friskt / 🟡 Observasjon / 🔴 Bekymringsfullt — med én setning begrunnelse.
+
+<h2>9. Anbefaling</h2>
+Bør man bygge produksjonskritisk kode på dette prosjektet nå? Hva er den største risikoen? Hva ville vippet vurderingen i negativ retning?
+
+Rapporten skal:
+- Skrives på norsk, men tekniske termer beholdes på engelsk
+- Bruke CSS-klassene fra malen (box, box-green, box-red, table osv.)
+- IKKE fabrikere tall — søk etter reelle GitHub-data
+
+LAGRE og SEND:
+1. Lagre rapporten til: $UTFIL
+2. Send med: /home/lars/.local/bin/hmail --to \"$MOTTAKER\" --subject \"OSS-helsesjekk: $PROSJEKT ($DATO)\" --html < $UTFIL
+3. Bekreft at eposten ble sendt.
+
+Dato i dag: $DATO"
+
+claude-kjor \
+  --tittel "OSS-helsesjekk: $PROSJEKT" \
+  --mottaker "$MOTTAKER" \
+  -- \
+  --dangerously-skip-permissions \
+  --model claude-haiku-4-5-20251001 \
+  --max-budget-usd "$BUDSJETT" \
+  --print \
+  "$PROMPT"
+
+# --- Legg til i RAG ---
+if [[ -f "$UTFIL" ]]; then
+  echo ""
+  echo "Legger OSS-helsesjekk til i RAG som: $RAG_KILDE"
+  /home/lars/.local/bin/rag add "$UTFIL" "$RAG_KILDE" \
+    && echo "RAG: OK" \
+    || echo "RAG: FEIL (rapport er likevel lagret på disk)"
+else
+  echo "ADVARSEL: Rapportfil ikke funnet på $UTFIL — RAG-ingestion hoppet over."
+fi
+
+echo ""
+echo "=== Ferdig ==="
+echo "Rapport lagret: $UTFIL"

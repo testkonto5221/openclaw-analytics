@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Georgia, serif; max-width: 860px; margin: auto; padding: 24px; color: #1a1a1a; background: #fff; }
+  h1 { color: #1a2e4a; border-bottom: 3px solid #1a2e4a; padding-bottom: 10px; }
+  h2 { color: #1a2e4a; margin-top: 36px; border-left: 4px solid #3a7bd5; padding-left: 10px; }
+  h3 { color: #2c5282; margin-top: 24px; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th { background: #1a2e4a; color: white; padding: 10px 8px; text-align: left; font-size: 0.9em; }
+  td { padding: 9px 8px; border-bottom: 1px solid #e2e8f0; font-size: 0.9em; }
+  tr:nth-child(even) { background: #f7fafc; }
+  tr:hover { background: #ebf4ff; }
+  .var { color: #276749; font-weight: bold; }
+  .cap { color: #2b4acb; font-weight: bold; }
+  .kno { color: #744210; font-weight: bold; }
+  .green { color: #276749; }
+  .red { color: #c53030; }
+  .orange { color: #c05621; }
+  .box { border: 1px solid #bee3f8; background: #ebf8ff; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-green { border: 1px solid #c6f6d5; background: #f0fff4; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-red { border: 1px solid #fed7d7; background: #fff5f5; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .box-yellow { border: 1px solid #fefcbf; background: #fffff0; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
+  .verdict { font-size: 1.1em; border-radius: 8px; padding: 16px 20px; margin: 12px 0; }
+  .verdict-var { background: #f0fff4; border: 2px solid #276749; }
+  .verdict-cap { background: #ebf4ff; border: 2px solid #2b4acb; }
+  .verdict-kno { background: #fffff0; border: 2px solid #c05621; }
+  .score { display: inline-block; width: 28px; height: 28px; border-radius: 50%; color: white; text-align: center; line-height: 28px; font-weight: bold; font-size: 0.85em; }
+  .score-a { background: #276749; }
+  .score-b { background: #2b6cb0; }
+  .score-c { background: #c05621; }
+  .score-d { background: #c53030; }
+  ul { padding-left: 20px; }
+  li { margin: 5px 0; }
+  .note { font-size: 0.8em; color: #718096; font-style: italic; }
+  hr { border: none; border-top: 1px solid #e2e8f0; margin: 28px 0; }
+  .legend { display: flex; gap: 16px; margin: 8px 0; flex-wrap: wrap; }
+  .legend span { display: flex; align-items: center; gap: 6px; font-size: 0.85em; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+</style>
+</head>
+<body>
+
+<h1>Sammenlignende Investoranalyse</h1>
+<h3>Vår Energi · Capgemini · Knowit — Februar 2026</h3>
+<p class="note">Laget for en privat småinvestor. Faguttrykk forklares underveis. Ikke finansiell rådgivning.</p>
+
+<div class="legend">
+  <span><span class="dot" style="background:#276749"></span> <span class="var">Vår Energi (VAR.OL)</span></span>
+  <span><span class="dot" style="background:#2b4acb"></span> <span class="cap">Capgemini (CAP.PA)</span></span>
+  <span><span class="dot" style="background:#744210"></span> <span class="kno">Knowit (KNOW)</span></span>
+</div>
+
+<hr>
+
+<h2>1. Hva gjør selskapene? (Enkelt forklart)</h2>
+
+<table>
+  <tr>
+    <th>Selskap</th>
+    <th>Hva det driver med</th>
+    <th>Størrelse</th>
+    <th>Børs / Valuta</th>
+  </tr>
+  <tr>
+    <td class="var">Vår Energi</td>
+    <td>Leter etter og pumper opp olje og gass fra norsk sokkel. Selger råvaren. Enkel inntektsmodell.</td>
+    <td>~USD 7,6 mrd (markedsverdi)</td>
+    <td>Oslo Børs / NOK</td>
+  </tr>
+  <tr>
+    <td class="cap">Capgemini</td>
+    <td>Hjelper store bedrifter med IT, digitalisering og kunstig intelligens. Litt som et kjempe-IT-konsulentfirma med 423 000 ansatte globalt.</td>
+    <td>~€19–20 mrd</td>
+    <td>Euronext Paris / EUR</td>
+  </tr>
+  <tr>
+    <td class="kno">Knowit</td>
+    <td>Nordisk IT-konsulent — hjelper bedrifter med digitale løsninger, apper, sky og strategi. Mye mindre enn Capgemini, men norsk/nordisk fokus.</td>
+    <td>~SEK 3,4 mrd</td>
+    <td>Nasdaq Stockholm / SEK</td>
+  </tr>
+</table>
+
+<div class="box">
+  <strong>Hva betyr dette for deg som investor?</strong><br>
+  Vår Energi selger en fysisk råvare (olje) der prisen bestemmes av verdensmarkedet. Capgemini og Knowit selger <em>arbeidstimer og kompetanse</em> — inntektene er mer stabile, men veksten avhenger av kundenes IT-budsjetter.
+</div>
+
+<hr>
+
+<h2>2. Kurs og verdsettelse — Er de billige eller dyre?</h2>
+
+<p>Her er noen nøkkeltall som hjelper deg forstå om aksjen er priset lavt eller høyt. <em>Forklaringer under tabellen.</em></p>
+
+<table>
+  <tr>
+    <th>Mål</th>
+    <th class="var">Vår Energi</th>
+    <th class="cap">Capgemini</th>
+    <th class="kno">Knowit</th>
+  </tr>
+  <tr>
+    <td>Nåværende kurs</td>
+    <td class="var">~NOK 33–35</td>
+    <td class="cap">~€113–115</td>
+    <td class="kno">~SEK 125</td>
+  </tr>
+  <tr>
+    <td>52-ukers kursintervall</td>
+    <td class="var">NOK 26,81–39,49</td>
+    <td class="cap">€99,74–166,20</td>
+    <td class="kno">SEK 88–180 (est.)</td>
+  </tr>
+  <tr>
+    <td><strong>P/E (fremover)</strong> 🔑</td>
+    <td class="var"><strong>9,5x</strong> 🟢 Lavt</td>
+    <td class="cap"><strong>10,8x</strong> 🟢 Historisk lavt</td>
+    <td class="kno"><strong>30–34x</strong> 🔴 Høyt</td>
+  </tr>
+  <tr>
+    <td>EV/EBITDA</td>
+    <td class="var"><strong>~2,1x</strong> 🟢 Svært lavt</td>
+    <td class="cap"><strong>~8,3x</strong> 🟡 Moderat</td>
+    <td class="kno"><strong>~15–17x</strong> 🔴 Høyt</td>
+  </tr>
+  <tr>
+    <td>Direkteavkastning (utbytte)</td>
+    <td class="var"><strong>~14,5 %</strong> 🟢 Høy</td>
+    <td class="cap"><strong>~3 %</strong> 🟡 OK</td>
+    <td class="kno"><strong>~2 %</strong> 🟡 Lav</td>
+  </tr>
+  <tr>
+    <td>Analytikernes kursmål</td>
+    <td class="var">NOK 36,79 <span class="green">(+10 %)</span></td>
+    <td class="cap">€159–176 <span class="green">(+40–55 %)</span></td>
+    <td class="kno">SEK 128–150 <span class="green">(+2–20 %)</span></td>
+  </tr>
+  <tr>
+    <td>Analytikernes anbefaling</td>
+    <td class="var">9–10 Kjøp, 4 Hold</td>
+    <td class="cap">6 Kjøp, 2 Hold</td>
+    <td class="kno">Kjøp (Pareto)</td>
+  </tr>
+</table>
+
+<div class="box">
+  <strong>Ordforklaring:</strong>
+  <ul>
+    <li><strong>P/E (pris/inntjening):</strong> Hvor mange kroner betaler du for én krone i overskudd per år? P/E 10 betyr du betaler 10x årsoverskuddet. Lavere = billigere. Et normalt P/E-nivå for modne selskaper er 12–18x.</li>
+    <li><strong>EV/EBITDA:</strong> Litt som P/E, men tar også hensyn til gjeld. En EV/EBITDA på 2x (som Vår Energi) er ekstremt lavt — nesten som å kjøpe selskapet for to ganger det tjener på driftsoverskudd.</li>
+    <li><strong>Direkteavkastning:</strong> Utbyttet i prosent av kursen. 14,5 % betyr at du får 14,5 øre tilbake per krone investert hvert år bare i utbytte.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2>3. Inntekter og vekst</h2>
+
+<table>
+  <tr>
+    <th>Nøkkeltall</th>
+    <th class="var">Vår Energi</th>
+    <th class="cap">Capgemini</th>
+    <th class="kno">Knowit</th>
+  </tr>
+  <tr>
+    <td>Siste årsomsetning</td>
+    <td class="var">USD 8,1 mrd (+9,5 %)</td>
+    <td class="cap">€22,5 mrd (+1,7 %)</td>
+    <td class="kno">SEK 5,8 mrd (-9,6 %)</td>
+  </tr>
+  <tr>
+    <td>Driftsmargin (overskudd per krone)</td>
+    <td class="var">~77 % EBITDA-margin</td>
+    <td class="cap">13,3 % driftsmargin</td>
+    <td class="kno">4,0 % EBITA-margin</td>
+  </tr>
+  <tr>
+    <td>Nettoresultat (fortjeneste)</td>
+    <td class="var">USD 846 mill. <span class="green">(+159 %)</span></td>
+    <td class="cap">Stabil, ~€1,3 mrd.</td>
+    <td class="kno"><span class="red">Nettotap SEK 285 mill.</span> (nedskrivning)</td>
+  </tr>
+  <tr>
+    <td>Vekstretning</td>
+    <td class="var">📈 Sterk vekst</td>
+    <td class="cap">📊 Stabil, akselererer</td>
+    <td class="kno">📉 Faller</td>
+  </tr>
+  <tr>
+    <td>Vekstguiding neste år</td>
+    <td class="var">Produksjon 390–410 kboepd</td>
+    <td class="cap">+6,5–8,5 % inntektsvekst</td>
+    <td class="kno">Ingen gitt</td>
+  </tr>
+</table>
+
+<div class="box-yellow">
+  <strong>Viktig om Knowit:</strong> Nettotapet i 2025 skyldes en regnskapsmessig nedskrivning (goodwill) — ikke et driftstap i tradisjonell forstand. Det betyr at Knowit erkjente at Cybercom-oppkjøpet fra 2021 ble overpriset. Den faktiske driften genererte positivt EBITA på SEK 233 mill., men marginene er svake.
+</div>
+
+<hr>
+
+<h2>4. Gjeld og finansiell styrke</h2>
+
+<p>Gjeld er ikke alltid farlig, men for mye gjeld kan bli et problem hvis inntektene svikter.</p>
+
+<table>
+  <tr>
+    <th>Gjeldssituasjon</th>
+    <th class="var">Vår Energi</th>
+    <th class="cap">Capgemini</th>
+    <th class="kno">Knowit</th>
+  </tr>
+  <tr>
+    <td>Netto gjeld</td>
+    <td class="var">USD 5,3 mrd</td>
+    <td class="cap">€5,3 mrd</td>
+    <td class="kno">Moderat</td>
+  </tr>
+  <tr>
+    <td>Gjeldsrate (gjeld/inntjening)</td>
+    <td class="var"><strong>0,8x</strong> 🟢 Trygt (mål &lt;1,3x)</td>
+    <td class="cap"><strong>~2,7x</strong> 🟡 Håndterbart</td>
+    <td class="kno"><strong>Ikke oppgitt</strong></td>
+  </tr>
+  <tr>
+    <td>Likviditet (tilgjengelig cash)</td>
+    <td class="var">USD 3 450 mill.</td>
+    <td class="cap">~€2 mrd. FCF/år</td>
+    <td class="kno">Begrenset</td>
+  </tr>
+  <tr>
+    <td>Finansiell robusthet</td>
+    <td class="var">🟢 Sterk</td>
+    <td class="cap">🟡 God, men mer gjeld etter WNS</td>
+    <td class="kno">🟡 Tilstrekkelig</td>
+  </tr>
+</table>
+
+<div class="box">
+  <strong>Ordforklaring — Gjeldsrate:</strong> Viser hvor mange år det tar å betale ned gjelden med dagens inntjening. 0,8x for Vår Energi betyr under ett år — veldig trygt. Over 3–4x begynner å bli bekymringsfullt for de fleste bransjer.
+</div>
+
+<hr>
+
+<h2>5. Risikokart — Hva kan gå galt?</h2>
+
+<table>
+  <tr>
+    <th>Risikotype</th>
+    <th class="var">Vår Energi</th>
+    <th class="cap">Capgemini</th>
+    <th class="kno">Knowit</th>
+  </tr>
+  <tr>
+    <td><strong>Markedsrisiko</strong><br><span class="note">Avhengig av ytre priser</span></td>
+    <td class="var">🔴 Høy — oljeprisen styrer alt. Brent ~USD 65–70 nå, kan falle til USD 58–60 (EIA)</td>
+    <td class="cap">🟡 Middels — IT-budsjetter kuttes i resesjon</td>
+    <td class="kno">🟡 Middels — nordisk IT-marked i nedgang</td>
+  </tr>
+  <tr>
+    <td><strong>Prosjektrisiko</strong><br><span class="note">Interne forsinkelser</span></td>
+    <td class="var">🟡 Snøhvit Future 1 år forsinket (ny dato Q1 2029)</td>
+    <td class="cap">🔴 WNS-integrasjon — stort og komplekst</td>
+    <td class="kno">🔴 Cybercom-integrasjon skuffet</td>
+  </tr>
+  <tr>
+    <td><strong>KI-risiko</strong><br><span class="note">Kunstig intelligens som trussel</span></td>
+    <td class="var">🟢 Lav — KI erstatter ikke oljepumper</td>
+    <td class="cap">🟡 Middels — KI kan redusere fakturerbare timer</td>
+    <td class="kno">🔴 Høy — standardtjenester automatiseres</td>
+  </tr>
+  <tr>
+    <td><strong>Gjeld og rentesensitivitet</strong></td>
+    <td class="var">🟢 Lav — 0,8x gjeldsrate er komfortabelt</td>
+    <td class="cap">🟡 Middels — netto gjeld doblet etter WNS</td>
+    <td class="kno">🟢 Lav — moderat gjeld</td>
+  </tr>
+  <tr>
+    <td><strong>ESG / politisk risiko</strong><br><span class="note">Miljø, regler, politikk</span></td>
+    <td class="var">🔴 Høy — klimafokus, elektrifiseringskrav</td>
+    <td class="cap">🟡 Middels — handelskonflikter/tariffer</td>
+    <td class="kno">🟢 Lav</td>
+  </tr>
+  <tr>
+    <td><strong>Inntjeningsrisiko</strong><br><span class="note">Kan resultater skuffe?</span></td>
+    <td class="var">🟢 Break-even USD 40/fat gir stor buffer</td>
+    <td class="cap">🟡 Svak vekst i Frankrike (hjemmemarked)</td>
+    <td class="kno">🔴 Omsetning ned ~20 % fra toppen</td>
+  </tr>
+</table>
+
+<div class="box-red">
+  <strong>Største enkeltrisiko per selskap:</strong>
+  <ul>
+    <li><span class="var">Vår Energi:</span> Oljepris under USD 40/fat ville gi negativ fri kontantstrøm</li>
+    <li><span class="cap">Capgemini:</span> WNS-integrasjonen mislykkes og synergiene uteblir</li>
+    <li><span class="kno">Knowit:</span> Omsetningsfallet fortsetter uten tegn til bunn</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2>6. Mulighetskartet — Hva kan gå bra?</h2>
+
+<table>
+  <tr>
+    <th>Mulighet</th>
+    <th class="var">Vår Energi</th>
+    <th class="cap">Capgemini</th>
+    <th class="kno">Knowit</th>
+  </tr>
+  <tr>
+    <td><strong>Vekstmotor</strong></td>
+    <td class="var">Goliat-hubben — estimert 200+ mmboe. Tre nye funn i 2025.</td>
+    <td class="cap">WNS + generativ KI — posisjonert for AI-drevet forretningsprosessering</td>
+    <td class="kno">Forsvar (Milso-oppkjøp), NATO-opprustning i Europa</td>
+  </tr>
+  <tr>
+    <td><strong>Verdsettelsesoppside</strong></td>
+    <td class="var">EV/EBITDA 2x er ekstremt lavt. Analytiker total ~24 % inkl. utbytte.</td>
+    <td class="cap">P/E 11x vs. 10-årssnitt 20x — 40–55 % oppside til normalisert nivå</td>
+    <td class="kno">Begrenset — P/E 30–34x er allerede krevende for nåværende inntjening</td>
+  </tr>
+  <tr>
+    <td><strong>Utbyttehistorikk</strong></td>
+    <td class="var">USD 1,2 mrd utbetalt 2025. Kvartalsvis. 14,5 % yield.</td>
+    <td class="cap">Stabil utbytte €3,40/aksje. Lav, men trygg.</td>
+    <td class="kno">SEK 2,50/aksje — lav, men opprettholdt tross vanskelig år</td>
+  </tr>
+  <tr>
+    <td><strong>Strukturell medvind</strong></td>
+    <td class="var">Europeiske gasspriser høye pga. geopolitikk</td>
+    <td class="cap">Digital transformasjon og AI er sekulære trender</td>
+    <td class="kno">Nordisk IT-marked ventes å snu (+CAGR 3,7 %)</td>
+  </tr>
+</table>
+
+<hr>
+
+<h2>7. Hvem passer dette for? — Investorprofil</h2>
+
+<table>
+  <tr>
+    <th>Profil</th>
+    <th class="var">Vår Energi</th>
+    <th class="cap">Capgemini</th>
+    <th class="kno">Knowit</th>
+  </tr>
+  <tr>
+    <td><strong>Utbytte-investor</strong><br><span class="note">Vil ha løpende inntekt</span></td>
+    <td class="var">🟢 Ypperlig — 14,5 % er topp 5 i Europa</td>
+    <td class="cap">🟡 Greit (~3 %)</td>
+    <td class="kno">🔴 Svakt (~2 %)</td>
+  </tr>
+  <tr>
+    <td><strong>Verdi-investor</strong><br><span class="note">Vil kjøpe billig og vente</span></td>
+    <td class="var">🟢 Svært billig på alle mål</td>
+    <td class="cap">🟢 Historisk lavt — sterk case</td>
+    <td class="kno">🔴 P/E 30–34x er dyrt for et selskap i nedgang</td>
+  </tr>
+  <tr>
+    <td><strong>Vekst-investor</strong><br><span class="note">Vil ha rask kursoppgang</span></td>
+    <td class="var">🟡 Begrenset oppsidepotensial i kurs</td>
+    <td class="cap">🟢 40–55 % analytikerkonsensusoppside</td>
+    <td class="kno">🟡 Mulig oppsving, men usikkert</td>
+  </tr>
+  <tr>
+    <td><strong>Defensiv investor</strong><br><span class="note">Vil bevare kapital</span></td>
+    <td class="var">🟡 Buffert fra lav break-even, men oljeprisrisiko</td>
+    <td class="cap">🟢 Forutsigbar forretningsmodell, sterk FCF</td>
+    <td class="kno">🔴 Svake marginer og fallende omsetning = risiko</td>
+  </tr>
+  <tr>
+    <td><strong>Anbefalt tidshorisont</strong></td>
+    <td class="var">1–3 år (inntektsfokus)</td>
+    <td class="cap">3–5 år (verdi+vekst)</td>
+    <td class="kno">2–4 år (oppsving-spill)</td>
+  </tr>
+</table>
+
+<hr>
+
+<h2>8. Sammenligningsscorecard</h2>
+<p class="note">Subjektiv vurdering basert på tilgjengelig data. 🟢 = Sterk · 🟡 = Nøytral · 🔴 = Svak</p>
+
+<table>
+  <tr>
+    <th>Kategori (vekt)</th>
+    <th class="var">Vår Energi</th>
+    <th class="cap">Capgemini</th>
+    <th class="kno">Knowit</th>
+  </tr>
+  <tr>
+    <td>Verdsettelse (25 %)</td>
+    <td class="var">🟢 Svært billig</td>
+    <td class="cap">🟢 Historisk billig</td>
+    <td class="kno">🔴 Dyr gitt inntjening</td>
+  </tr>
+  <tr>
+    <td>Utbytte og kapitalavkastning (25 %)</td>
+    <td class="var">🟢 Utmerket (14,5 %)</td>
+    <td class="cap">🟡 Greit (~3 %)</td>
+    <td class="kno">🔴 Lavt (~2 %)</td>
+  </tr>
+  <tr>
+    <td>Inntjeningstrend (20 %)</td>
+    <td class="var">🟢 Rekordresultater</td>
+    <td class="cap">🟡 Stabil, akselererer</td>
+    <td class="kno">🔴 Fallende</td>
+  </tr>
+  <tr>
+    <td>Risikonivå (20 %)</td>
+    <td class="var">🟡 Oljeprisrisiko</td>
+    <td class="cap">🟡 WNS-integrasjon</td>
+    <td class="kno">🔴 Flere risikoer</td>
+  </tr>
+  <tr>
+    <td>Vekstpotensial (10 %)</td>
+    <td class="var">🟡 Goliat-hub</td>
+    <td class="cap">🟢 AI/BPO-megatrend</td>
+    <td class="kno">🟡 Forsvar + nordisk IT</td>
+  </tr>
+  <tr style="background:#f7fafc; font-weight:bold;">
+    <td><strong>Samlet vurdering</strong></td>
+    <td class="var">⭐⭐⭐⭐ (4/5)</td>
+    <td class="cap">⭐⭐⭐⭐ (4/5)</td>
+    <td class="kno">⭐⭐ (2/5)</td>
+  </tr>
+</table>
+
+<hr>
+
+<h2>9. Oppsummering — Hva betyr dette for deg?</h2>
+
+<div class="verdict verdict-var">
+  <strong class="var">Vår Energi (VAR.OL) — Inntektsmaskin med oljeprisrisiko</strong><br><br>
+  Kjøper du Vår Energi i dag, får du en aksje som er ekstremt billig målt mot inntjeningen, og som betaler ut nesten 15 % av aksjekursen i utbytte hvert år. Selskapet pumper mer olje enn noensinne og har lav break-even (USD 40/fat), noe som gir god buffer mot oljeprisfall.<br><br>
+  <strong>Ulempen:</strong> Alt avhenger av oljeprisen. Faller den mot USD 40, fordamper frihetsgraden. ESG-press og energiomstilling er langsiktige vinder mot sektoren.<br><br>
+  <strong>Konklusjon:</strong> Godt egnet for investor som ønsker <em>høy løpende utbetaling</em> og tåler olje-eksponering. Ikke egnet som ren vekstaksje.
+</div>
+
+<div class="verdict verdict-cap">
+  <strong class="cap">Capgemini (CAP.PA) — Kvalitetsselskap på historisk sluttilbud</strong><br><br>
+  Capgemini er et av Europas beste IT-selskaper, og handles nå 40 % under toppen. P/E på ~11x er halvparten av historisk snitt — uten at noe fundamentalt er ødelagt. WNS-oppkjøpet er risikabelt, men posisjonerer selskapet ypperlig for KI-trenden.<br><br>
+  <strong>Ulempen:</strong> Integrasjonsrisiko etter det største oppkjøpet i selskapets historie. Gjelden er økt. Organisk vekst i hjemmemarkedet Frankrike er svak.<br><br>
+  <strong>Konklusjon:</strong> Sterkeste case for en investor med 3–5 års horisont. Analytikerne peker på 40–55 % kurspotensial til normaliserte multipler.
+</div>
+
+<div class="verdict verdict-kno">
+  <strong class="kno">Knowit (KNOW) — Turnaround-spill med høy usikkerhet</strong><br><br>
+  Knowit er i en krevende omstillingsfase — omsetningen har falt 20 % fra toppen, Cybercom-integrasjonen skuffet, og P/E på 30–34x er høyt for et selskap i nedgang. Q4 2025-marginen på 7,8 % er et lyspunkt, og satsinger på forsvar (Milso) og Products-segment er interessante.<br><br>
+  <strong>Ulempen:</strong> For at aksjen skal leve opp til verdsettelsen, <em>må</em> marginforbedringen fortsette. Det er ikke sikkert.<br><br>
+  <strong>Konklusjon:</strong> Høyere risiko enn de to andre. Kan være interessant for en investor som tror på nordisk IT-syklusoppsving og er villig til å vente 2–3 år — men det er mer av et spekulasjonsmoment enn en solid verdicase.
+</div>
+
+<hr>
+
+<h2>10. Én setnings-konklusjon per selskap</h2>
+
+<table>
+  <tr>
+    <th>Selskap</th>
+    <th>Kjøp hvis du...</th>
+    <th>Unngå hvis du...</th>
+  </tr>
+  <tr>
+    <td class="var">Vår Energi</td>
+    <td>...vil ha høy utbetaling nå og tror oljeprisen holder seg over USD 50</td>
+    <td>...er bekymret for klimarisiko eller energiomstilling</td>
+  </tr>
+  <tr>
+    <td class="cap">Capgemini</td>
+    <td>...kan vente 3–5 år på at verdsettelsen normaliserer seg og KI-trenden materialiser</td>
+    <td>...trenger rask avkastning eller er redd for integrasjonsrisiko</td>
+  </tr>
+  <tr>
+    <td class="kno">Knowit</td>
+    <td>...vil satse på nordisk IT-oppsving og er komfortabel med høy risiko</td>
+    <td>...vil ha forutsigbarhet, god utbetaling eller fornuftig verdsettelse</td>
+  </tr>
+</table>
+
+<hr>
+<p class="note">Rapport utarbeidet februar 2026 for privat bruk. Kildegrunnlag: Vår Energi IR, Capgemini IR, Knowit IR, MarketScreener, analytikerkonsensus. Ikke finansiell rådgivning — gjør egne vurderinger eller konsulter en autorisert rådgiver.</p>
+
+</body>
+</html>

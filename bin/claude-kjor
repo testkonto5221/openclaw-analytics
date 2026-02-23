@@ -1,0 +1,92 @@
+#!/bin/bash
+# claude-kjor — Wrapper rundt 'claude --print' med automatisk rate-limit-håndtering
+#
+# Bruk (internt fra andre scripts — ikke kall direkte):
+#   claude-kjor --tittel "Equinor-analyse" --mottaker "epost@no" -- [claude-argumenter]
+#
+# Ved rate-limit/overload:
+#   - Varsler bruker via epost og stdout
+#   - Venter til tokens er tilgjengelig igjen (standard: 65 min)
+#   - Prøver automatisk på nytt (maks 8 ganger)
+
+MAX_FORSOK=8
+VENTETID_MIN=65      # Minutter å vente ved rate limit (litt over 1 time for sikkerhet)
+TITTEL="analyse"
+MOTTAKER="lsoraas@gmail.com"
+CLAUDE_ARGS=()
+
+# --- Parse egne argumenter, resten går til claude ---
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --tittel)    TITTEL="$2"; shift 2 ;;
+    --mottaker)  MOTTAKER="$2"; shift 2 ;;
+    --)          shift; CLAUDE_ARGS=("$@"); break ;;
+    *)           CLAUDE_ARGS+=("$1"); shift ;;
+  esac
+done
+
+send_pause_varsel() {
+  local resume_kl="$1"
+  local forsok="$2"
+
+  local melding="Høy press i datasenteret. Analysen \"${TITTEL}\" er midlertidig satt på pause og fortsetter automatisk kl. ${resume_kl} (forsøk ${forsok}/${MAX_FORSOK})."
+
+  echo ""
+  echo "⏸  $melding"
+  echo ""
+
+  /home/lars/.local/bin/hmail \
+    --to "$MOTTAKER" \
+    --subject "⏸ Analyse satt på pause — fortsetter kl. ${resume_kl}" \
+    --body "$melding" \
+    2>/dev/null || true   # ikke kræsj hvis epost feiler
+}
+
+er_rate_limit_feil() {
+  local tekst="$1"
+  echo "$tekst" | grep -qiE \
+    "overload|rate.limit|too many requests|429|529|quota|capacity|try again|retry|insufficient"
+}
+
+# --- Hovedløkke ---
+for forsok in $(seq 1 $MAX_FORSOK); do
+  echo "[claude-kjor] Forsøk ${forsok}/${MAX_FORSOK}..."
+
+  TMPFEIL=$(mktemp)
+
+  # Kjør claude, fang stderr for feilanalyse, la stdout gå gjennom
+  claude "${CLAUDE_ARGS[@]}" 2>"$TMPFEIL"
+  EXITKODE=$?
+  FEILMELDING=$(cat "$TMPFEIL")
+  rm -f "$TMPFEIL"
+
+  if [[ $EXITKODE -eq 0 ]]; then
+    echo "[claude-kjor] Fullført OK."
+    exit 0
+  fi
+
+  # Sjekk om det er rate limit / overload
+  if er_rate_limit_feil "$FEILMELDING"; then
+    if [[ $forsok -lt $MAX_FORSOK ]]; then
+      RESUME_KL=$(date -d "+${VENTETID_MIN} minutes" "+%H:%M" 2>/dev/null \
+                  || date -v+${VENTETID_MIN}M "+%H:%M" 2>/dev/null \
+                  || echo "om ca. ${VENTETID_MIN} minutter")
+      send_pause_varsel "$RESUME_KL" "$forsok"
+      echo "[claude-kjor] Venter ${VENTETID_MIN} min — sover til kl. ${RESUME_KL}..."
+      sleep $((VENTETID_MIN * 60))
+    else
+      echo "[claude-kjor] Maks forsøk nådd. Gir opp."
+      echo "FEIL: $FEILMELDING" >&2
+      /home/lars/.local/bin/hmail \
+        --to "$MOTTAKER" \
+        --subject "❌ Analyse feilet etter ${MAX_FORSOK} forsøk: ${TITTEL}" \
+        --body "Analysen \"${TITTEL}\" feilet etter ${MAX_FORSOK} forsøk. Siste feil: ${FEILMELDING}" \
+        2>/dev/null || true
+      exit 1
+    fi
+  else
+    # Annen feil — ikke rate limit, ikke prøv igjen
+    echo "FEIL (ikke rate-limit): $FEILMELDING" >&2
+    exit $EXITKODE
+  fi
+done
