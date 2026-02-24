@@ -17,7 +17,7 @@ MALSTI="/home/lars/.openclaw/workspace/templates/tech-puls.html"
 MOTTAKER="lsoraas@gmail.com"
 BUDSJETT="1.00"
 MODELL="claude-sonnet-4-6"
-OMRÅDE=""
+OMRADE=""
 
 # --- Argumentparsing ---
 POSITIONAL=()
@@ -30,9 +30,9 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-OMRÅDE="${POSITIONAL[0]:-}"
+OMRADE="${POSITIONAL[0]:-}"
 
-if [[ -z "$OMRÅDE" ]]; then
+if [[ -z "$OMRADE" ]]; then
   echo "Feil: Oppgi et teknologiområde."
   echo ""
   echo "Bruk:    tech-puls \"AI agents\""
@@ -42,7 +42,7 @@ if [[ -z "$OMRÅDE" ]]; then
 fi
 
 DATO=$(date +%Y-%m-%d)
-SLUG=$(echo "$OMRÅDE" \
+SLUG=$(echo "$OMRADE" \
   | sed 's/[æÆ]/ae/g; s/[øØ]/o/g; s/[åÅ]/a/g' \
   | tr '[:upper:]' '[:lower:]' \
   | tr -cs 'a-z0-9' '-' \
@@ -59,10 +59,10 @@ for kandidat in "$RAPPORTDIR"/*_puls_"${SLUG}".html; do
   alder_dager=$(( ( $(date +%s) - $(stat -c %Y "$kandidat" 2>/dev/null || echo 0) ) / 86400 ))
   if [[ $alder_dager -lt 7 ]]; then
     LAGRET_DATO=$(basename "$kandidat" .html | cut -d_ -f1)
-    echo "✅ Tech-puls for \"$OMRÅDE\" finnes fra ${LAGRET_DATO} — sender fra arkiv."
+    echo "✅ Tech-puls for \"$OMRADE\" finnes fra ${LAGRET_DATO} — sender fra arkiv."
     /home/lars/.local/bin/hmail \
       --to "$MOTTAKER" \
-      --subject "Tech-puls: $OMRÅDE ($LAGRET_DATO) [fra arkiv]" \
+      --subject "Tech-puls: $OMRADE ($LAGRET_DATO) [fra arkiv]" \
       --file "$kandidat"
     echo "Sendt fra arkiv: $kandidat"
     exit 0
@@ -70,7 +70,7 @@ for kandidat in "$RAPPORTDIR"/*_puls_"${SLUG}".html; do
 done
 
 echo "=== tech-puls ==="
-echo "Område   : $OMRÅDE"
+echo "Område   : $OMRADE"
 echo "Mottaker : $MOTTAKER"
 echo "Modell   : $MODELL"
 echo "Budsjett : USD $BUDSJETT"
@@ -80,22 +80,22 @@ echo "Starter Claude Code CLI..."
 
 PROMPT="Du er en teknologijournalist og kurator som lager presise, lenkefylte oppdateringer om spesifikke teknologiområder.
 
-Din oppgave: Lag en fersk tech-puls-rapport om: $OMRÅDE
+Din oppgave: Lag en fersk tech-puls-rapport om: $OMRADE
 
 VIKTIGSTE REGEL: ALDRI fabriker lenker. Alle URL-er du inkluderer MÅ du ha funnet via websøk. Hvis du er usikker på om en lenke eksisterer, utelat den.
 
 INSTRUKSJONER:
-1. Bruk websøk aktivt — søk etter det nyeste (siste 30–60 dager) innen $OMRÅDE: nyheter, YouTube-videoer, blogginnlegg, papers, verktøy, konferanseopptak
+1. Bruk websøk aktivt — søk etter det nyeste (siste 30–60 dager) innen $OMRADE: nyheter, YouTube-videoer, blogginnlegg, papers, verktøy, konferanseopptak
 2. Les malen fra filen: $MALSTI
 3. Generer en komplett HTML-rapport med samme CSS-klasser og struktur som malen
 
 Rapporten skal inneholde ALLE disse seksjonene:
 
 <h2>1. Hva skjer nå</h2>
-3–5 setninger om hva som er det viktigste innen $OMRÅDE akkurat nå. Hva driver endringen? Hva er det hete temaet? Skriv som en oppdatert journalist, ikke som et leksikon. Legg til en .box med 3–5 punkter om nøkkeltrender akkurat nå.
+3–5 setninger om hva som er det viktigste innen $OMRADE akkurat nå. Hva driver endringen? Hva er det hete temaet? Skriv som en oppdatert journalist, ikke som et leksikon. Legg til en .box med 3–5 punkter om nøkkeltrender akkurat nå.
 
 <h2>2. Videoer verdt å se</h2>
-Søk etter faktiske YouTube-videoer og konferanseopptak om $OMRÅDE fra de siste 60 dagene. Inkluder 4–6 videoer.
+Søk etter faktiske YouTube-videoer og konferanseopptak om $OMRADE fra de siste 60 dagene. Inkluder 4–6 videoer.
 For hver video: ekte URL (søk etter den!), tittel, kanal, dato, varighet, og 1–2 setninger om innhold og hvorfor den er verdt å se.
 Merk med «● Ny» (klasse: fresh) hvis publisert siste 14 dager, ellers «● Eldre» (klasse: older).
 Bruk CSS-klassen .link-card for hvert kort og .tag.tag-video for taggen.
@@ -106,16 +106,16 @@ For hver: ekte URL, tittel, kilde, dato, og én setning om hva artikkelen handle
 Bruk .link-card og .tag.tag-news.
 
 <h2>4. Publikasjoner og forskning</h2>
-Søk etter papers, rapporter eller dypere analyser om $OMRÅDE (arXiv, ACM, IEEE, bedriftsblogger, analysebyråer som Gartner/Forrester/a16z). Inkluder 2–4 publikasjoner.
+Søk etter papers, rapporter eller dypere analyser om $OMRADE (arXiv, ACM, IEEE, bedriftsblogger, analysebyråer som Gartner/Forrester/a16z). Inkluder 2–4 publikasjoner.
 For hver: ekte URL, tittel, forfatter(e), kilde, dato, og 2 setninger om innhold og relevans.
 Bruk .link-card og .tag.tag-paper.
 
 <h2>5. Verktøy og prosjekter å følge</h2>
-Tabell med 4–6 konkrete verktøy, biblioteker, rammeverk eller OSS-prosjekter innen $OMRÅDE med momentum akkurat nå.
+Tabell med 4–6 konkrete verktøy, biblioteker, rammeverk eller OSS-prosjekter innen $OMRADE med momentum akkurat nå.
 Kolonner: Navn | Hva | Lenke (GitHub/nettside) | Hvorfor nå
 
 <h2>6. Hvem å følge</h2>
-3–5 nøkkelpersoner, YouTube-kanaler, nyhetsbrev eller podcaster for å holde seg oppdatert innen $OMRÅDE.
+3–5 nøkkelpersoner, YouTube-kanaler, nyhetsbrev eller podcaster for å holde seg oppdatert innen $OMRADE.
 For hver: navn, lenke (Twitter/X, YouTube, Substack), og kort om hvem/hva og hvorfor følge.
 
 Rapporten skal:
@@ -134,7 +134,7 @@ TMPOUT=$(mktemp --suffix=.html)
 
 set +e
 claude-kjor \
-  --tittel "Tech-puls: $OMRÅDE" \
+  --tittel "Tech-puls: $OMRADE" \
   --mottaker "$MOTTAKER" \
   -- \
   --dangerously-skip-permissions \
@@ -169,7 +169,7 @@ rm -f "$TMPOUT"
 if [[ -f "$UTFIL" ]]; then
   /home/lars/.local/bin/hmail \
     --to "$MOTTAKER" \
-    --subject "Tech-puls: $OMRÅDE ($DATO)" \
+    --subject "Tech-puls: $OMRADE ($DATO)" \
     --file "$UTFIL" \
     && echo "Epost sendt til $MOTTAKER." \
     || echo "ADVARSEL: Epostsending feilet."
