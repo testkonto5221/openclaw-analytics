@@ -4,16 +4,18 @@
 # What this does:
 #   1. Asks for your OpenClaw workspace path and email address
 #   2. Detects himalaya binary path
-#   3. Substitutes placeholders in all scripts
+#   3. Substitutes placeholders in all scripts and config files
 #   4. Symlinks scripts to ~/.local/bin/
-#   5. Copies HTML template to your workspace/templates/
-#   6. Creates workspace/rapporter/ output directory
+#   5. Copies HTML templates to your workspace/templates/
+#   6. Copies report config files to your workspace/rapporter/
+#   7. Creates workspace/rapporter/ output directory
 
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BIN_SRC="$REPO_DIR/bin"
 TEMPLATE_SRC="$REPO_DIR/templates"
+CONF_SRC="$REPO_DIR/rapporter"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
 
@@ -82,29 +84,55 @@ ok "Directories ready"
 echo ""
 echo "Installing scripts to $INSTALL_BIN ..."
 
-for src in "$BIN_SRC"/*; do
-  name="$(basename "$src")"
-  dest="$INSTALL_BIN/$name"
-
-  # Sed-substitute placeholders
+do_substitute() {
+  local src="$1" dest="$2"
   sed \
     -e "s|/home/lars/.openclaw/workspace|$WORKSPACE|g" \
     -e "s|/home/lars/.local/bin|$INSTALL_BIN|g" \
     -e "s|lsoraas@gmail.com|$EMAIL|g" \
     -e "s|/home/linuxbrew/.linuxbrew/bin/himalaya|$HIMALAYA_BIN|g" \
     "$src" > "$dest"
+}
 
+for src in "$BIN_SRC"/*; do
+  name="$(basename "$src")"
+  dest="$INSTALL_BIN/$name"
+
+  do_substitute "$src" "$dest"
   chmod +x "$dest"
   ok "  $name"
 done
 
-# --- 7. Copy HTML template ---
+# --- 7. Copy and substitute config files ---
+echo ""
+echo "Installing report configs to $RAPPORTDIR ..."
+
+for src in "$CONF_SRC"/*.conf; do
+  [[ -f "$src" ]] || continue
+  name="$(basename "$src")"
+  dest="$RAPPORTDIR/$name"
+
+  do_substitute "$src" "$dest"
+  ok "  $name"
+done
+
+# --- 8. Copy HTML templates ---
 echo ""
 echo "Copying templates to $TEMPLATEDIR ..."
-cp "$TEMPLATE_SRC/investorsammenligning.html" "$TEMPLATEDIR/"
-ok "  investorsammenligning.html"
 
-# --- 8. Python dependency check ---
+for src in "$TEMPLATE_SRC"/*.html; do
+  [[ -f "$src" ]] || continue
+  name="$(basename "$src")"
+  cp "$src" "$TEMPLATEDIR/$name"
+  ok "  $name"
+done
+
+if [[ -f "$TEMPLATE_SRC/TEMPLATES.md" ]]; then
+  cp "$TEMPLATE_SRC/TEMPLATES.md" "$TEMPLATEDIR/"
+  ok "  TEMPLATES.md"
+fi
+
+# --- 9. Python dependency check ---
 echo ""
 if python3 -c "import yfinance" 2>/dev/null; then
   ok "yfinance (Python) installed"
@@ -118,7 +146,10 @@ echo ""
 echo "=== Installation complete ==="
 echo ""
 echo "Quick test:"
-echo "  list-rapporter"
+echo "  rapport --list"
+echo "  rapport tech-trend \"Rust\" --budget 0.10"
+echo ""
+echo "Old command names still work:"
 echo "  tech-trend-analyse \"Rust\" --budget 0.10"
 echo ""
 echo "If email doesn't work, check himalaya config:"
