@@ -17,7 +17,7 @@ rapport --list                          # vis alle tilgjengelige rapporttyper
 
 | Type | Navn | Modell | Budsjett | Cache | Beskrivelse |
 |------|------|--------|----------|-------|-------------|
-| `fin-investor` | Investorrapport | Haiku | $0.80 | 7d | Sammenlignende investoranalyse av flere selskaper |
+| `fin-investor` | Investorrapport | Haiku | $0.80 | 7d | Sammenlignende investoranalyse av flere selskaper (prefix: `investor_`) |
 | `fin-dybde` | Dybdeanalyse | Sonnet | $2.00 | 7d | Ekstra dyp analyse av ett enkelt selskap (3-års historikk, DCF, scenarier) |
 | `fin-sammenlign` | Rapportsammenligning | Haiku | $0.80 | 7d | Sammenlign to lagrede rapporter (dual input) |
 | `tech-puls` | Tech-puls | Sonnet | $1.00 | 7d | Fersk oppdatering med videoer, nyheter og lenker |

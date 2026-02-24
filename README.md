@@ -196,7 +196,7 @@ YYYY-MM-DD_<prefix><slug>.html
 
 | Prefix | Report type |
 |--------|-------------|
-| *(none)* | `fin-investor` |
+| `investor_` | `fin-investor` |
 | `dybde_` | `fin-dybde` |
 | `sammenligning_` | `fin-sammenlign` |
 | `puls_` | `tech-puls` |
