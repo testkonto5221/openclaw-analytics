@@ -50,7 +50,7 @@ if [[ "$HTML" == true ]]; then
     echo "Subject: $SUBJECT"
     echo "MIME-Version: 1.0"
     echo "Content-Type: text/html; charset=UTF-8"
-    echo "Content-Transfer-Encoding: quoted-printable"
+    echo "Content-Transfer-Encoding: 8bit"
     echo ""
     echo "$BODY"
   } > "$TMPFILE"
