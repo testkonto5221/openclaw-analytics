@@ -123,10 +123,8 @@ Rapporten skal:
 - Bruke CSS-klassene fra malen (box, box-green, box-red, table osv.)
 - IKKE fabrikere tall — søk etter reelle data
 
-LAGRE og SEND:
+LAGRE:
 1. Lagre rapporten til: $UTFIL
-2. Send med: /home/lars/.local/bin/hmail --to \"$MOTTAKER\" --subject \"Sektorradar: $SEKTOR ($DATO)\" --file $UTFIL
-3. Bekreft at eposten ble sendt.
 
 Dato i dag: $DATO"
 
@@ -152,21 +150,27 @@ if [[ $CLAUDE_OK -ne 0 ]]; then
 fi
 
 if [[ ! -f "$UTFIL" ]]; then
-  if [[ -s "$TMPOUT" ]]; then
+  if grep -qi '<html\|<!DOCTYPE' "$TMPOUT" 2>/dev/null; then
     echo ""
     echo "Rapport ikke lagret av Claude — lagrer fra stdout-buffer..."
     cp "$TMPOUT" "$UTFIL"
-    /home/lars/.local/bin/hmail \
-      --to "$MOTTAKER" \
-      --subject "Sektorradar: $SEKTOR ($DATO)" \
-      --file "$UTFIL" \
-      && echo "Epost sendt." \
-      || echo "ADVARSEL: Epostsending feilet."
   else
-    echo "ADVARSEL: Ingen rapport å lagre — stdout var tom."
+    echo "ADVARSEL: Ingen gyldig HTML-rapport generert."
+    rm -f "$TMPOUT"
+    exit 1
   fi
 fi
 rm -f "$TMPOUT"
+
+# Send epost — alltid fra skriptet, aldri delegert til Claude
+if [[ -f "$UTFIL" ]]; then
+  /home/lars/.local/bin/hmail \
+    --to "$MOTTAKER" \
+    --subject "Sektorradar: $SEKTOR ($DATO)" \
+    --file "$UTFIL" \
+    && echo "Epost sendt til $MOTTAKER." \
+    || echo "ADVARSEL: Epostsending feilet."
+fi
 
 # --- Legg til i RAG ---
 if [[ -f "$UTFIL" ]]; then

@@ -148,7 +148,6 @@ OPPGAVE:
 6. Send rapporten med:
    /home/lars/.local/bin/hmail --to \"$MOTTAKER\" --subject \"Sammenligning: $NAVN1 vs $NAVN2 ($DATO)\" --file $UTFIL
 
-7. Bekreft at eposten ble sendt.
 
 Dato i dag: $DATO"
 
@@ -174,21 +173,27 @@ if [[ $CLAUDE_OK -ne 0 ]]; then
 fi
 
 if [[ ! -f "$UTFIL" ]]; then
-  if [[ -s "$TMPOUT" ]]; then
+  if grep -qi '<html\|<!DOCTYPE' "$TMPOUT" 2>/dev/null; then
     echo ""
     echo "Rapport ikke lagret av Claude — lagrer fra stdout-buffer..."
     cp "$TMPOUT" "$UTFIL"
-    /home/lars/.local/bin/hmail \
-      --to "$MOTTAKER" \
-      --subject "Sammenligning: $NAVN1 vs $NAVN2 ($DATO)" \
-      --file "$UTFIL" \
-      && echo "Epost sendt." \
-      || echo "ADVARSEL: Epostsending feilet."
   else
-    echo "ADVARSEL: Ingen rapport å lagre — stdout var tom."
+    echo "ADVARSEL: Ingen gyldig HTML-rapport generert."
+    rm -f "$TMPOUT"
+    exit 1
   fi
 fi
 rm -f "$TMPOUT"
+
+# Send epost — alltid fra skriptet, aldri delegert til Claude
+if [[ -f "$UTFIL" ]]; then
+  /home/lars/.local/bin/hmail \
+    --to "$MOTTAKER" \
+    --subject "Sammenligning: $NAVN1 vs $NAVN2 ($DATO)" \
+    --file "$UTFIL" \
+    && echo "Epost sendt til $MOTTAKER." \
+    || echo "ADVARSEL: Epostsending feilet."
+fi
 
 # --- Legg til i RAG ---
 if [[ -f "$UTFIL" ]]; then
