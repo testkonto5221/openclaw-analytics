@@ -33,6 +33,14 @@ ORIGINAL_NAME="$2"
 MIME_TYPE="${3:-unknown}"
 FILE_PATH="$INBOUND_DIR/$UUID_FILENAME"
 
+# Guard: reject UUID-like strings as original name — forces a real descriptive name
+if echo "$ORIGINAL_NAME" | grep -qiE '^file_[0-9]+---[0-9a-f]{8}-'; then
+    echo "ERROR: original-name looks like a UUID filename, not a real name." >&2
+    echo "Please provide a descriptive name, e.g.:" >&2
+    echo "  media-register \"$UUID_FILENAME\" \"my-document.pdf\"" >&2
+    exit 1
+fi
+
 # Verify file exists
 if [ ! -f "$FILE_PATH" ]; then
     echo "ERROR: File not found: $FILE_PATH" >&2
