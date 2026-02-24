@@ -60,6 +60,7 @@ for kandidat in "$RAPPORTDIR"/*_tech_"${SLUG}".html; do
     LAGRET_DATO=$(basename "$kandidat" .html | cut -d_ -f1)
     echo "✅ Analyse av \"$TEKNOLOGI\" finnes fra ${LAGRET_DATO} — sender fra arkiv."
     /home/lars/.local/bin/hmail \
+      --from "Klarsyn Analyse <testkonto5221@gmail.com>" \
       --to "$MOTTAKER" \
       --subject "Tech-analyse: $TEKNOLOGI ($LAGRET_DATO) [fra arkiv]" \
       --file "$kandidat"
@@ -128,6 +129,8 @@ Rapporten skal:
 - Tilpasses en utvikler eller tech-interessert ikke-spesialist
 - Bruke CSS-klassene fra malen (box, box-green, box-red, table, verdict osv.)
 - IKKE fabrikere tall — søk etter reelle data
+- ALDRI bruk CSS grid (display: grid) eller flexbox (display: flex) — fungerer IKKE i e-postklienter. Bruk tabeller for layout.
+- WCAG-kontrast: bruk ALDRI farger lysere enn #4a5568 for tekst på hvit bakgrunn. Grå: #4a5568, orange: #9a3412.
 
 LAGRE:
 1. Lagre rapporten til: $UTFIL
@@ -171,6 +174,7 @@ rm -f "$TMPOUT"
 # Send epost — alltid fra skriptet, aldri delegert til Claude
 if [[ -f "$UTFIL" ]]; then
   /home/lars/.local/bin/hmail \
+    --from "Klarsyn Analyse <testkonto5221@gmail.com>" \
     --to "$MOTTAKER" \
     --subject "Tech-analyse: $TEKNOLOGI ($DATO)" \
     --file "$UTFIL" \

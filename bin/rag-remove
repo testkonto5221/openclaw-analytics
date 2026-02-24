@@ -1,0 +1,84 @@
+#!/bin/bash
+# rag-remove - Remove a file from both RAG and filesystem atomically
+#
+# Usage:
+#   rag-remove <source_name> [file_path]
+#
+# If file_path is not given, tries to find the file in workspace/rapporter/
+# by matching source_name against filenames.
+#
+# Always removes from both RAG and filesystem (via trash).
+# This prevents orphaned RAG entries or forgotten files on disk.
+
+set -euo pipefail
+
+RAPPORTER_DIR="$HOME/.openclaw/workspace/rapporter"
+RAG_CMD="$HOME/.local/bin/rag"
+
+usage() {
+    echo "Usage: rag-remove <source_name> [file_path]"
+    echo ""
+    echo "Removes a document from both RAG and the filesystem."
+    echo "If file_path is omitted, looks for the file in workspace/rapporter/."
+    exit 1
+}
+
+[ $# -lt 1 ] && usage
+
+SOURCE_NAME="$1"
+FILE_PATH="${2:-}"
+
+# If no file path given, try to find it in rapporter/
+if [ -z "$FILE_PATH" ]; then
+    # Try exact match first
+    if [ -f "$RAPPORTER_DIR/$SOURCE_NAME" ]; then
+        FILE_PATH="$RAPPORTER_DIR/$SOURCE_NAME"
+    else
+        # Try finding file that matches source_name as substring
+        MATCH=$(find "$RAPPORTER_DIR" -maxdepth 1 -name "*${SOURCE_NAME}*" -type f 2>/dev/null | head -1)
+        if [ -n "$MATCH" ]; then
+            FILE_PATH="$MATCH"
+        fi
+    fi
+fi
+
+# Track results
+RAG_OK=false
+FILE_OK=false
+ERRORS=""
+
+# Step 1: Remove from RAG
+echo "Removing '$SOURCE_NAME' from RAG..."
+if "$RAG_CMD" remove "$SOURCE_NAME" 2>&1; then
+    RAG_OK=true
+else
+    ERRORS="${ERRORS}RAG removal failed for '$SOURCE_NAME'. "
+fi
+
+# Step 2: Remove file from filesystem (via trash)
+if [ -n "$FILE_PATH" ] && [ -f "$FILE_PATH" ]; then
+    echo "Trashing file: $FILE_PATH"
+    if gio trash "$FILE_PATH" 2>&1; then
+        FILE_OK=true
+    else
+        ERRORS="${ERRORS}Failed to trash '$FILE_PATH'. "
+    fi
+elif [ -n "$FILE_PATH" ]; then
+    echo "File not found: $FILE_PATH (skipping filesystem removal)"
+else
+    echo "No file path found for '$SOURCE_NAME' (skipping filesystem removal)"
+fi
+
+# Summary
+echo ""
+if $RAG_OK && $FILE_OK; then
+    echo "✓ Completely removed '$SOURCE_NAME' (RAG + filesystem)"
+elif $RAG_OK && [ -z "$FILE_PATH" ]; then
+    echo "✓ Removed '$SOURCE_NAME' from RAG (no file path to remove)"
+elif $RAG_OK; then
+    echo "⚠ Removed from RAG but file removal failed: $ERRORS"
+    exit 1
+else
+    echo "✗ Removal failed: $ERRORS"
+    exit 1
+fi

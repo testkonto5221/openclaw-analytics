@@ -1,0 +1,46 @@
+#!/bin/bash
+# media-list - List all registered uploaded files
+#
+# Usage:
+#   media-list
+
+INBOUND_DIR="$HOME/.openclaw/media/inbound"
+MANIFEST="$INBOUND_DIR/manifest.json"
+
+if [ ! -f "$MANIFEST" ] || [ "$(cat "$MANIFEST")" = "{}" ]; then
+    echo "No registered files."
+    exit 0
+fi
+
+python3 -c "
+import json, os
+
+manifest_path = '$MANIFEST'
+inbound_dir = '$INBOUND_DIR'
+
+with open(manifest_path, 'r') as f:
+    manifest = json.load(f)
+
+if not manifest:
+    print('No registered files.')
+    exit(0)
+
+print(f'{len(manifest)} registered file(s):')
+print()
+
+for uuid_name, entry in sorted(manifest.items(), key=lambda x: x[1].get('registered', '')):
+    orig = entry.get('original_name', 'unknown')
+    ext = entry.get('extension', '?')
+    size = entry.get('size_bytes', 0)
+    rag = entry.get('rag_source', '')
+    indexed = entry.get('rag_indexed', False)
+    registered = entry.get('registered', 'unknown')[:10]
+    on_disk = os.path.isfile(os.path.join(inbound_dir, uuid_name))
+
+    size_str = f'{size/1024:.0f}KB' if size < 1048576 else f'{size/1048576:.1f}MB'
+    rag_str = f'RAG: {rag}' if indexed else 'not in RAG'
+    disk_str = '' if on_disk else ' [MISSING FROM DISK]'
+
+    print(f'  {orig} ({size_str}, .{ext}) — {rag_str}{disk_str}')
+    print(f'    → {uuid_name} (registered {registered})')
+"

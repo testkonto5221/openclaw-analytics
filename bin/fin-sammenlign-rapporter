@@ -91,6 +91,7 @@ for kandidat in "$RAPPORTDIR"/*_sammenligning_"${NAVN1}"_vs_"${NAVN2}".html \
     LAGRET_DATO=$(basename "$kandidat" .html | cut -d_ -f1)
     echo "✅ Denne sammenligningen lå allerede klar i arkivet fra ${LAGRET_DATO} — sender den til deg nå, ingen ny analyse nødvendig."
     /home/lars/.local/bin/hmail \
+      --from "Klarsyn Analyse <testkonto5221@gmail.com>" \
       --to "$MOTTAKER" \
       --subject "Sammenligning: $SOK1 vs $SOK2 ($LAGRET_DATO) [fra arkiv]" \
       --file "$kandidat"
@@ -142,12 +143,11 @@ OPPGAVE:
    - Forklare eventuelle faguttrykk
    - Ha tydelige tabeller med begge grupper side om side
    - Ha en tydelig anbefaling til slutt
+   - ALDRI bruke CSS grid (display: grid) eller flexbox (display: flex) — disse fungerer IKKE i e-postklienter. Bruk tabeller for all layout.
+   - WCAG-kontrast: bruk ALDRI farger lysere enn #4a5568 for tekst. Grå tekst: #4a5568, orange: #9a3412.
+   - Avsluttes med footer: <p class=\"note\" style=\"text-align: center; margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 12px;\">Generert av <strong>Klarsyn Analyse</strong></p>
 
 5. Lagre rapporten til: $UTFIL
-
-6. Send rapporten med:
-   /home/lars/.local/bin/hmail --to \"$MOTTAKER\" --subject \"Sammenligning: $NAVN1 vs $NAVN2 ($DATO)\" --file $UTFIL
-
 
 Dato i dag: $DATO"
 
@@ -188,6 +188,7 @@ rm -f "$TMPOUT"
 # Send epost — alltid fra skriptet, aldri delegert til Claude
 if [[ -f "$UTFIL" ]]; then
   /home/lars/.local/bin/hmail \
+    --from "Klarsyn Analyse <testkonto5221@gmail.com>" \
     --to "$MOTTAKER" \
     --subject "Sammenligning: $NAVN1 vs $NAVN2 ($DATO)" \
     --file "$UTFIL" \

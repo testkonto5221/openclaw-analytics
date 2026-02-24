@@ -61,6 +61,7 @@ for kandidat in "$RAPPORTDIR"/*_dybde_"${SLUG}".html; do
     LAGRET_DATO=$(basename "$kandidat" .html | cut -d_ -f1)
     echo "✅ Denne dybdeanalysen lå allerede klar i arkivet fra ${LAGRET_DATO} — sender den til deg nå, ingen ny analyse nødvendig."
     /home/lars/.local/bin/hmail \
+      --from "Klarsyn Analyse <testkonto5221@gmail.com>" \
       --to "$MOTTAKER" \
       --subject "Dybdeanalyse: $SELSKAP ($LAGRET_DATO) [fra arkiv]" \
       --file "$kandidat"
@@ -99,6 +100,24 @@ DATAINNSAMLING (gjør grundige websøk for hvert punkt):
 
 ANALYSESTRUKTUR — generer komplett HTML med samme CSS som malen i $MALSTI:
 
+VIKTIG — E-POSTKOMPABILITET:
+- ALDRI bruk CSS grid (display: grid) eller flexbox (display: flex) — disse fungerer ikke i e-postklienter.
+- For nøkkeltall-grid øverst: bruk en <table class=\"kpi-table\"> med 3 kolonner og 2 rader (6 KPI-bokser).
+  Eksempel:
+  <table class=\"kpi-table\">
+    <tr>
+      <td><div class=\"kpi-val\">NOK 238</div><div class=\"kpi-label\">Aksjekurs</div></td>
+      <td><div class=\"kpi-val\">NOK 161 mrd</div><div class=\"kpi-label\">Markedsverdi</div></td>
+      <td><div class=\"kpi-val\">6,4 %</div><div class=\"kpi-label\">Direkteavkastning</div></td>
+    </tr>
+    <tr>
+      <td><div class=\"kpi-val\">11,1x</div><div class=\"kpi-label\">P/E</div></td>
+      <td><div class=\"kpi-val\">1,8x</div><div class=\"kpi-label\">EV/EBITDA</div></td>
+      <td><div class=\"kpi-val\">NOK 15/aksje</div><div class=\"kpi-label\">Utbytte</div></td>
+    </tr>
+  </table>
+- For to-kolonne-layout: bruk <table> med to <td> (width=\"49%\" valign=\"top\"), ikke CSS columns.
+
 <h2>1. Selskapet i ett avsnitt</h2>
 Hva gjør selskapet, hvordan tjener det penger, og hva er kjerneforretningen?
 
@@ -112,6 +131,9 @@ Enkel DCF-tankegang: hva må skje for at prisen er rettferdig?
 
 <h2>4. Konkurranseposisjon og vollgrav</h2>
 Hva beskytter selskapet mot konkurrenter (patenter, merkevare, stordriftsfordeler, nettverkseffekter, byttekostnader)?
+Vollgrav-styrke skal vises med stjerner (1-5), ALDRI med progress bars (moat-bar/moat-fill).
+Eksempel: <td class=\"green\" style=\"font-size:1.1em; white-space:nowrap;\">&#9733;&#9733;&#9733;&#9733;&#9734; 4/5</td>
+Bruk grønn (#276749) for 4-5, blå (#2b6cb0) for 3, orange (#9a3412) for 1-2.
 Hvem er de tre største konkurrentene, og hvordan måler selskapet seg?
 
 <h2>5. Ledelse og eierskap</h2>
@@ -143,8 +165,10 @@ Rapporten skal:
 - Skrives på norsk
 - Tilpasses en privat småinvestor uten finansbakgrunn
 - Forklare alle faguttrykk underveis
-- Bruke CSS-stiler fra malen (box, box-green, box-red, table, verdict osv.)
+- Bruke CSS-stiler fra malen (box, box-green, box-red, table, verdict, kpi-table osv.)
 - IKKE fabrikere tall — søk etter alle data
+- Avsluttes med footer: <p class=\"note\" style=\"text-align: center; margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 12px;\">Generert av <strong>Klarsyn Analyse</strong></p>
+- WCAG-kontrast: bruk ALDRI farger lysere enn #4a5568 for tekst på hvit bakgrunn. Grå tekst skal være #4a5568, orange #9a3412.
 
 LAGRE:
 1. Lagre rapporten til: $UTFIL
@@ -188,6 +212,7 @@ rm -f "$TMPOUT"
 # Send epost — alltid fra skriptet, aldri delegert til Claude
 if [[ -f "$UTFIL" ]]; then
   /home/lars/.local/bin/hmail \
+    --from "Klarsyn Analyse <testkonto5221@gmail.com>" \
     --to "$MOTTAKER" \
     --subject "Dybdeanalyse: $SELSKAP ($DATO)" \
     --file "$UTFIL" \

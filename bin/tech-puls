@@ -61,6 +61,7 @@ for kandidat in "$RAPPORTDIR"/*_puls_"${SLUG}".html; do
     LAGRET_DATO=$(basename "$kandidat" .html | cut -d_ -f1)
     echo "✅ Tech-puls for \"$OMRADE\" finnes fra ${LAGRET_DATO} — sender fra arkiv."
     /home/lars/.local/bin/hmail \
+      --from "Klarsyn Analyse <testkonto5221@gmail.com>" \
       --to "$MOTTAKER" \
       --subject "Tech-puls: $OMRADE ($LAGRET_DATO) [fra arkiv]" \
       --file "$kandidat"
@@ -124,6 +125,8 @@ Rapporten skal:
 - Ha faktiske, verifiserte lenker — INGEN fabrikkerte URL-er
 - Angi publiseringsdato på alt innhold
 - Prioritere innhold fra de siste 30 dagene
+- ALDRI bruk CSS grid (display: grid) eller flexbox (display: flex) — fungerer IKKE i e-postklienter. Bruk tabeller for layout.
+- WCAG-kontrast: bruk ALDRI farger lysere enn #4a5568 for tekst på hvit bakgrunn. Grå: #4a5568, orange: #9a3412.
 
 LAGRE:
 1. Lagre rapporten til: $UTFIL
@@ -168,6 +171,7 @@ rm -f "$TMPOUT"
 # Send epost — alltid fra skriptet, aldri delegert til Claude
 if [[ -f "$UTFIL" ]]; then
   /home/lars/.local/bin/hmail \
+    --from "Klarsyn Analyse <testkonto5221@gmail.com>" \
     --to "$MOTTAKER" \
     --subject "Tech-puls: $OMRADE ($DATO)" \
     --file "$UTFIL" \

@@ -13,31 +13,36 @@
   tr:nth-child(even) { background: #f7fafc; }
   tr:hover { background: #ebf4ff; }
   .var { color: #276749; font-weight: bold; }
-  .cap { color: #2b4acb; font-weight: bold; }
+  .cap { color: #1e3a8a; font-weight: bold; }
   .kno { color: #744210; font-weight: bold; }
   .green { color: #276749; }
   .red { color: #c53030; }
-  .orange { color: #c05621; }
+  .orange { color: #9a3412; }
   .box { border: 1px solid #bee3f8; background: #ebf8ff; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
   .box-green { border: 1px solid #c6f6d5; background: #f0fff4; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
   .box-red { border: 1px solid #fed7d7; background: #fff5f5; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
   .box-yellow { border: 1px solid #fefcbf; background: #fffff0; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
   .verdict { font-size: 1.1em; border-radius: 8px; padding: 16px 20px; margin: 12px 0; }
   .verdict-var { background: #f0fff4; border: 2px solid #276749; }
-  .verdict-cap { background: #ebf4ff; border: 2px solid #2b4acb; }
-  .verdict-kno { background: #fffff0; border: 2px solid #c05621; }
+  .verdict-cap { background: #ebf4ff; border: 2px solid #1e3a8a; }
+  .verdict-kno { background: #fffff0; border: 2px solid #9a3412; }
   .score { display: inline-block; width: 28px; height: 28px; border-radius: 50%; color: white; text-align: center; line-height: 28px; font-weight: bold; font-size: 0.85em; }
   .score-a { background: #276749; }
   .score-b { background: #2b6cb0; }
-  .score-c { background: #c05621; }
+  .score-c { background: #9a3412; }
   .score-d { background: #c53030; }
   ul { padding-left: 20px; }
   li { margin: 5px 0; }
-  .note { font-size: 0.8em; color: #718096; font-style: italic; }
+  .note { font-size: 0.8em; color: #4a5568; font-style: italic; }
   hr { border: none; border-top: 1px solid #e2e8f0; margin: 28px 0; }
   .legend { display: flex; gap: 16px; margin: 8px 0; flex-wrap: wrap; }
   .legend span { display: flex; align-items: center; gap: 6px; font-size: 0.85em; }
   .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  /* KPI-grid for dybdeanalyser — tabellbasert for e-postkompabilitet */
+  .kpi-table { width: 100%; border-collapse: separate; border-spacing: 10px; margin: 16px 0; }
+  .kpi-table td { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 14px; text-align: center; width: 33%; }
+  .kpi-val { font-size: 1.4em; font-weight: bold; color: #1a2e4a; }
+  .kpi-label { font-size: 0.78em; color: #4a5568; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -48,7 +53,7 @@
 
 <div class="legend">
   <span><span class="dot" style="background:#276749"></span> <span class="var">Vår Energi (VAR.OL)</span></span>
-  <span><span class="dot" style="background:#2b4acb"></span> <span class="cap">Capgemini (CAP.PA)</span></span>
+  <span><span class="dot" style="background:#1e3a8a"></span> <span class="cap">Capgemini (CAP.PA)</span></span>
   <span><span class="dot" style="background:#744210"></span> <span class="kno">Knowit (KNOW)</span></span>
 </div>
 
@@ -486,6 +491,7 @@
 
 <hr>
 <p class="note">Rapport utarbeidet februar 2026 for privat bruk. Kildegrunnlag: Vår Energi IR, Capgemini IR, Knowit IR, MarketScreener, analytikerkonsensus. Ikke finansiell rådgivning — gjør egne vurderinger eller konsulter en autorisert rådgiver.</p>
+<p class="note" style="text-align: center; margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 12px;">Generert av <strong>Klarsyn Analyse</strong></p>
 
 </body>
 </html>

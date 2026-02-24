@@ -1,0 +1,111 @@
+#!/bin/bash
+# media-register - Register an uploaded file and optionally index in RAG
+#
+# Usage:
+#   media-register <uuid-filename> <original-name> [mime-type]
+#
+# Stores the mapping in manifest.json and indexes RAG-compatible files.
+# RAG-compatible types: .txt, .md, .html, .htm, .pdf
+
+set -euo pipefail
+
+INBOUND_DIR="$HOME/.openclaw/media/inbound"
+MANIFEST="$INBOUND_DIR/manifest.json"
+RAG_CMD="$HOME/.local/bin/rag"
+
+RAG_EXTENSIONS="txt md html htm pdf json csv xml"
+
+usage() {
+    echo "Usage: media-register <uuid-filename> <original-name> [mime-type]"
+    echo ""
+    echo "Registers an uploaded file in the manifest and indexes in RAG if compatible."
+    echo ""
+    echo "  uuid-filename  The file in media/inbound (e.g. file_7---949a7ae8-...md)"
+    echo "  original-name  The original filename from the uploader"
+    echo "  mime-type      Optional MIME type (e.g. text/markdown)"
+    exit 1
+}
+
+[ $# -lt 2 ] && usage
+
+UUID_FILENAME="$1"
+ORIGINAL_NAME="$2"
+MIME_TYPE="${3:-unknown}"
+FILE_PATH="$INBOUND_DIR/$UUID_FILENAME"
+
+# Verify file exists
+if [ ! -f "$FILE_PATH" ]; then
+    echo "ERROR: File not found: $FILE_PATH" >&2
+    exit 1
+fi
+
+# Ensure manifest exists
+[ -f "$MANIFEST" ] || echo '{}' > "$MANIFEST"
+
+# Get file extension (lowercase)
+EXT="${ORIGINAL_NAME##*.}"
+EXT=$(echo "$EXT" | tr '[:upper:]' '[:lower:]')
+
+# Get file size
+FILE_SIZE=$(stat -c%s "$FILE_PATH" 2>/dev/null || stat -f%z "$FILE_PATH" 2>/dev/null || echo "0")
+
+# Build RAG source name from original filename (without extension)
+# Include short hash from UUID filename to ensure uniqueness
+SHORT_HASH=$(echo "$UUID_FILENAME" | md5sum | cut -c1-6)
+RAG_SOURCE="upload_$(echo "${ORIGINAL_NAME%.*}" | tr ' ' '_' | tr '[:upper:]' '[:lower:]')_${SHORT_HASH}"
+
+# Check if RAG-compatible
+IS_RAG_COMPATIBLE=false
+for ext in $RAG_EXTENSIONS; do
+    if [ "$EXT" = "$ext" ]; then
+        IS_RAG_COMPATIBLE=true
+        break
+    fi
+done
+
+# Add to manifest using python for safe JSON handling
+python3 -c "
+import json, sys
+from datetime import datetime
+
+manifest_path = '$MANIFEST'
+with open(manifest_path, 'r') as f:
+    manifest = json.load(f)
+
+manifest['$UUID_FILENAME'] = {
+    'original_name': '$ORIGINAL_NAME',
+    'mime_type': '$MIME_TYPE',
+    'extension': '$EXT',
+    'size_bytes': $FILE_SIZE,
+    'registered': datetime.now().isoformat(),
+    'rag_source': '$RAG_SOURCE' if $( $IS_RAG_COMPATIBLE && echo 'True' || echo 'False' ) else None,
+    'rag_indexed': False
+}
+
+with open(manifest_path, 'w') as f:
+    json.dump(manifest, f, indent=2, ensure_ascii=False)
+"
+
+echo "Registered '$ORIGINAL_NAME' → $UUID_FILENAME"
+
+# Index in RAG if compatible
+if $IS_RAG_COMPATIBLE; then
+    echo "Indexing in RAG as '$RAG_SOURCE'..."
+    if "$RAG_CMD" add "$FILE_PATH" "$RAG_SOURCE" 2>&1; then
+        # Update manifest to mark as indexed
+        python3 -c "
+import json
+manifest_path = '$MANIFEST'
+with open(manifest_path, 'r') as f:
+    manifest = json.load(f)
+manifest['$UUID_FILENAME']['rag_indexed'] = True
+with open(manifest_path, 'w') as f:
+    json.dump(manifest, f, indent=2, ensure_ascii=False)
+"
+        echo "✓ Registered and indexed '$ORIGINAL_NAME' ($RAG_SOURCE)"
+    else
+        echo "⚠ Registered '$ORIGINAL_NAME' but RAG indexing failed" >&2
+    fi
+else
+    echo "✓ Registered '$ORIGINAL_NAME' (not RAG-compatible: .$EXT)"
+fi

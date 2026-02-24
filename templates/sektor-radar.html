@@ -14,7 +14,7 @@
   tr:hover { background: #ebf4ff; }
   .green { color: #276749; }
   .red { color: #c53030; }
-  .orange { color: #c05621; }
+  .orange { color: #9a3412; }
   .blue { color: #2b6cb0; }
   .box { border: 1px solid #bee3f8; background: #ebf8ff; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
   .box-green { border: 1px solid #c6f6d5; background: #f0fff4; border-radius: 6px; padding: 14px 18px; margin: 16px 0; }
@@ -23,22 +23,22 @@
   /* Radar ring colours */
   .adopt  { display:inline-block; background:#276749; color:white; border-radius:4px; padding:2px 8px; font-size:0.85em; font-weight:bold; }
   .try    { display:inline-block; background:#2b6cb0; color:white; border-radius:4px; padding:2px 8px; font-size:0.85em; font-weight:bold; }
-  .assess { display:inline-block; background:#c05621; color:white; border-radius:4px; padding:2px 8px; font-size:0.85em; font-weight:bold; }
-  .hold   { display:inline-block; background:#718096; color:white; border-radius:4px; padding:2px 8px; font-size:0.85em; font-weight:bold; }
+  .assess { display:inline-block; background:#9a3412; color:white; border-radius:4px; padding:2px 8px; font-size:0.85em; font-weight:bold; }
+  .hold   { display:inline-block; background:#4a5568; color:white; border-radius:4px; padding:2px 8px; font-size:0.85em; font-weight:bold; }
   /* Momentum badges */
   .hot    { color: #c53030; font-weight: bold; }
   .rising { color: #276749; font-weight: bold; }
-  .stable { color: #718096; }
-  .fading { color: #c05621; }
+  .stable { color: #4a5568; }
+  .fading { color: #9a3412; }
   ul { padding-left: 20px; }
   li { margin: 5px 0; }
-  .note { font-size: 0.8em; color: #718096; font-style: italic; }
+  .note { font-size: 0.8em; color: #4a5568; font-style: italic; }
   hr { border: none; border-top: 1px solid #e2e8f0; margin: 28px 0; }
   /* Radar-ringer: layout via tabell i HTML (ikke grid — fungerer ikke i epost) */
   .ring-adopt h4  { color: #276749; margin: 0 0 8px; }
   .ring-try h4    { color: #2b6cb0; margin: 0 0 8px; }
-  .ring-assess h4 { color: #c05621; margin: 0 0 8px; }
-  .ring-hold h4   { color: #718096; margin: 0 0 8px; }
+  .ring-assess h4 { color: #9a3412; margin: 0 0 8px; }
+  .ring-hold h4   { color: #4a5568; margin: 0 0 8px; }
 </style>
 </head>
 <body>
@@ -186,7 +186,7 @@
     <td style="height: 14px; border-bottom: none;"></td>
   </tr>
   <tr>
-    <td width="49%" valign="top" class="ring-assess" style="border: 2px solid #c05621; background: #fffff0; border-radius: 6px; padding: 14px 18px; border-bottom: 2px solid #c05621;">
+    <td width="49%" valign="top" class="ring-assess" style="border: 2px solid #9a3412; background: #fffff0; border-radius: 6px; padding: 14px 18px; border-bottom: 2px solid #9a3412;">
       <h4>ASSESS — følg med</h4>
       <ul>
         <li>...</li>
@@ -194,7 +194,7 @@
       </ul>
     </td>
     <td style="width: 14px; border-bottom: none;"></td>
-    <td width="49%" valign="top" class="ring-hold" style="border: 2px solid #718096; background: #f7fafc; border-radius: 6px; padding: 14px 18px; border-bottom: 2px solid #718096;">
+    <td width="49%" valign="top" class="ring-hold" style="border: 2px solid #4a5568; background: #f7fafc; border-radius: 6px; padding: 14px 18px; border-bottom: 2px solid #4a5568;">
       <h4>HOLD — avvent</h4>
       <ul>
         <li>...</li>
@@ -217,7 +217,7 @@
 </div>
 
 <hr>
-<p class="note">Rapport generert [DATO] · Klarsyn-analytics</p>
+<p class="note">Rapport generert [DATO] · <strong>Klarsyn Analyse</strong></p>
 
 </body>
 </html>

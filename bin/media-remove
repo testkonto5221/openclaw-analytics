@@ -1,0 +1,120 @@
+#!/bin/bash
+# media-remove - Remove an uploaded file from manifest, RAG, and filesystem
+#
+# Usage:
+#   media-remove <original-name|uuid-filename>
+#
+# Looks up the file in manifest.json, removes from RAG if indexed,
+# trashes the file, and removes from manifest.
+
+set -euo pipefail
+
+INBOUND_DIR="$HOME/.openclaw/media/inbound"
+MANIFEST="$INBOUND_DIR/manifest.json"
+RAG_CMD="$HOME/.local/bin/rag"
+
+usage() {
+    echo "Usage: media-remove <original-name|uuid-filename>"
+    echo ""
+    echo "Removes an uploaded file from manifest, RAG, and filesystem."
+    echo "Accepts either the original filename or the UUID filename."
+    echo ""
+    echo "Use 'media-list' to see registered files."
+    exit 1
+}
+
+[ $# -lt 1 ] && usage
+
+LOOKUP="$1"
+
+# Ensure manifest exists
+if [ ! -f "$MANIFEST" ]; then
+    echo "ERROR: No manifest found at $MANIFEST" >&2
+    exit 1
+fi
+
+# Look up file in manifest (by original name or uuid filename)
+RESULT=$(python3 -c "
+import json, sys
+
+lookup = '$LOOKUP'
+with open('$MANIFEST', 'r') as f:
+    manifest = json.load(f)
+
+# Try direct key match (uuid filename)
+if lookup in manifest:
+    entry = manifest[lookup]
+    print(f\"{lookup}|{entry.get('original_name', 'unknown')}|{entry.get('rag_source', '')}|{entry.get('rag_indexed', False)}\")
+    sys.exit(0)
+
+# Try matching by original name
+for uuid_name, entry in manifest.items():
+    if entry.get('original_name') == lookup:
+        print(f\"{uuid_name}|{entry.get('original_name', 'unknown')}|{entry.get('rag_source', '')}|{entry.get('rag_indexed', False)}\")
+        sys.exit(0)
+
+# Try partial match on original name
+for uuid_name, entry in manifest.items():
+    orig = entry.get('original_name', '')
+    if lookup.lower() in orig.lower():
+        print(f\"{uuid_name}|{entry.get('original_name', 'unknown')}|{entry.get('rag_source', '')}|{entry.get('rag_indexed', False)}\")
+        sys.exit(0)
+
+print('NOT_FOUND')
+sys.exit(1)
+" 2>&1) || {
+    echo "ERROR: File '$LOOKUP' not found in manifest." >&2
+    echo "Use 'media-list' to see registered files."
+    exit 1
+}
+
+UUID_FILENAME=$(echo "$RESULT" | cut -d'|' -f1)
+ORIGINAL_NAME=$(echo "$RESULT" | cut -d'|' -f2)
+RAG_SOURCE=$(echo "$RESULT" | cut -d'|' -f3)
+RAG_INDEXED=$(echo "$RESULT" | cut -d'|' -f4)
+FILE_PATH="$INBOUND_DIR/$UUID_FILENAME"
+
+echo "Removing '$ORIGINAL_NAME' ($UUID_FILENAME)..."
+
+ERRORS=""
+
+# Step 1: Remove from RAG if indexed
+if [ "$RAG_INDEXED" = "True" ] && [ -n "$RAG_SOURCE" ]; then
+    echo "Removing from RAG ($RAG_SOURCE)..."
+    if "$RAG_CMD" remove "$RAG_SOURCE" 2>&1; then
+        echo "  RAG: removed"
+    else
+        ERRORS="${ERRORS}RAG removal failed. "
+    fi
+fi
+
+# Step 2: Trash the file
+if [ -f "$FILE_PATH" ]; then
+    echo "Trashing file..."
+    if gio trash "$FILE_PATH" 2>&1; then
+        echo "  File: trashed"
+    else
+        ERRORS="${ERRORS}File trash failed. "
+    fi
+else
+    echo "  File: already gone from disk"
+fi
+
+# Step 3: Remove from manifest
+python3 -c "
+import json
+with open('$MANIFEST', 'r') as f:
+    manifest = json.load(f)
+manifest.pop('$UUID_FILENAME', None)
+with open('$MANIFEST', 'w') as f:
+    json.dump(manifest, f, indent=2, ensure_ascii=False)
+"
+echo "  Manifest: removed"
+
+# Summary
+if [ -z "$ERRORS" ]; then
+    echo "✓ Completely removed '$ORIGINAL_NAME'"
+else
+    echo "⚠ Partially removed '$ORIGINAL_NAME': $ERRORS" >&2
+    exit 1
+fi

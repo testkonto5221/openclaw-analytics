@@ -57,6 +57,7 @@ for kandidat in "$RAPPORTDIR"/*_oss_"${SLUG}".html; do
     LAGRET_DATO=$(basename "$kandidat" .html | cut -d_ -f1)
     echo "✅ OSS-helsesjekk av \"$PROSJEKT\" finnes fra ${LAGRET_DATO} — sender fra arkiv."
     /home/lars/.local/bin/hmail \
+      --from "Klarsyn Analyse <testkonto5221@gmail.com>" \
       --to "$MOTTAKER" \
       --subject "OSS-helsesjekk: $PROSJEKT ($LAGRET_DATO) [fra arkiv]" \
       --file "$kandidat"
@@ -84,7 +85,17 @@ INSTRUKSJONER:
 4. Rapporten skal inneholde ALLE disse seksjonene:
 
 <h2>1. Prosjektoversikt</h2>
-Hva gjør prosjektet, hvem startet det, hvilket språk/stack, hvilken lisens, og hva er primærbruksområdet?
+Vis nøkkeldata i en to-kolonners tabell med header \"Egenskap\" og \"Verdi\":
+  <table>
+    <tr><th>Egenskap</th><th>Verdi</th></tr>
+    <tr><td>GitHub-repo</td><td>lenke</td></tr>
+    <tr><td>Språk</td><td>...</td></tr>
+    <tr><td>Lisens</td><td>...</td></tr>
+    <tr><td>Første commit</td><td>...</td></tr>
+    <tr><td>Siste stabile release</td><td>...</td></tr>
+    <tr><td>GitHub-stjerner</td><td>...</td></tr>
+  </table>
+Deretter: Hva gjør prosjektet, hvem startet det, og hva er primærbruksområdet?
 
 <h2>2. Bidragsyter-helse</h2>
 Tabell med: Totalt antall bidragsytere | Aktive siste 90 dager | Top-3 bidragsytere (% av commits) | Bus factor (hvor mange personer kan forsvinne uten at prosjektet stopper?) | Geografisk/organisatorisk spredning
@@ -116,7 +127,9 @@ Tabell med disse dimensjonene, score 1-5 og begrunnelse:
 | Finansieringssikkerhet | | |
 | Community-størrelse | | |
 
-Samlet dom: 🟢 Friskt / 🟡 Observasjon / 🔴 Bekymringsfullt — med én setning begrunnelse.
+Samlet dom i en box-green/box-yellow/box-red: skriv dommen som ren bold tekst, IKKE som en badge med egen bakgrunnsfarge.
+Eksempel: <div class=\"box-green\"><strong>Samlet dom: 🟢 Friskt</strong> — prosjektet er aktivt vedlikeholdt med bred bidragsyterbase.</div>
+ALDRI bruk CSS-klasser som \"healthy\", \"watchful\" eller \"critical\" med egen bakgrunnsfarge inni boksen.
 
 <h2>9. Anbefaling</h2>
 Bør man bygge produksjonskritisk kode på dette prosjektet nå? Hva er den største risikoen? Hva ville vippet vurderingen i negativ retning?
@@ -125,6 +138,8 @@ Rapporten skal:
 - Skrives på norsk, men tekniske termer beholdes på engelsk
 - Bruke CSS-klassene fra malen (box, box-green, box-red, table osv.)
 - IKKE fabrikere tall — søk etter reelle GitHub-data
+- ALDRI bruk CSS grid (display: grid) eller flexbox (display: flex) — fungerer IKKE i e-postklienter. Bruk tabeller for layout.
+- WCAG-kontrast: bruk ALDRI farger lysere enn #4a5568 for tekst på hvit bakgrunn. Grå: #4a5568, orange: #9a3412.
 
 LAGRE:
 1. Lagre rapporten til: $UTFIL
@@ -169,6 +184,7 @@ rm -f "$TMPOUT"
 # Send epost — alltid fra skriptet, aldri delegert til Claude
 if [[ -f "$UTFIL" ]]; then
   /home/lars/.local/bin/hmail \
+    --from "Klarsyn Analyse <testkonto5221@gmail.com>" \
     --to "$MOTTAKER" \
     --subject "OSS-helsesjekk: $PROSJEKT ($DATO)" \
     --file "$UTFIL" \
