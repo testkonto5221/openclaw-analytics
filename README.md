@@ -1,6 +1,6 @@
 # openclaw-analytics
 
-Analytics and report scripts for the [OpenClaw](https://github.com/lsoraas/openclaw) personal AI assistant platform. Each script offloads a specific analytical task to Claude Code CLI and delivers an HTML report by email.
+Analytics and report scripts for the [OpenClaw](https://github.com/lsoraas/openclaw) personal AI assistant platform. All report types are driven by a single generic runner (`rapport`) with per-type config files.
 
 Reports are saved locally, indexed in a RAG knowledge base, and cached for 7–14 days to avoid redundant API calls.
 
@@ -40,66 +40,111 @@ It then substitutes all paths, symlinks scripts to `~/.local/bin/`, copies the H
 FROM="your-sender@gmail.com"
 ```
 
-**Default recipient** — each script has `MOTTAKER="..."` near the top. Change globally with `install.sh` or per-script.
+**Default recipient** — set in each `.conf` file or override per-run with `--to`.
 
 ---
 
-## Scripts
+## The `rapport` runner
 
-### Core utilities
+All reports are generated via one generic runner:
+
+```bash
+rapport <type> <input> [--to email] [--budget N] [--model M]
+rapport --list                          # show available report types
+```
+
+The runner:
+1. Loads `rapporter/<type>.conf` (prompt, model, budget, cache duration)
+2. Checks archive cache — sends existing report from disk if it's fresh enough
+3. Expands the prompt with `${INPUT}`, `${DATO}`, `${MALSTI}`, `${UTFIL}`
+4. Calls `claude-kjor` (with automatic rate-limit retry)
+5. Fallback: saves HTML from stdout if Claude didn't write the file itself
+6. Sends report via email (`hmail`)
+7. Indexes in RAG knowledge base
+
+### Available report types
+
+| Type | Name | Model | Budget | Cache | Description |
+|------|------|-------|--------|-------|-------------|
+| `fin-investor` | Investorrapport | Haiku | $0.80 | 7d | Comparative multi-company investor report |
+| `fin-dybde` | Dybdeanalyse | Sonnet | $2.00 | 7d | Deep single-company analysis (3yr history, DCF, scenarios) |
+| `fin-sammenlign` | Rapportsammenligning | Haiku | $0.80 | 7d | Compare two stored reports (dual input) |
+| `tech-puls` | Tech-puls | Sonnet | $1.00 | 7d | Fresh digest with videos, news, papers, tools |
+| `tech-trend` | Tech-trendanalyse | Sonnet | $1.50 | 14d | Deep technology trend analysis (adoption, jobs, scenarios) |
+| `tech-radar` | Sektorradar | Haiku | $0.80 | 7d | Tech sector pulse (ADOPT/TRY/ASSESS/HOLD) |
+| `tech-oss` | OSS-helsesjekk | Haiku | $0.40 | 14d | Open source project health check |
+| `tech-ai` | AI-modellsammenligning | Haiku | $0.50 | 7d | Compare 2-4 AI models (benchmarks, pricing, use cases) |
+
+### Examples
+
+```bash
+rapport fin-investor "DNB, Equinor, Aker BP" --to you@example.com
+rapport fin-dybde "Orkla"
+rapport fin-dybde "Equinor" --model claude-opus-4-6
+rapport fin-sammenlign "olje-gass" "sjømat"
+rapport tech-puls "AI agents" --budget 1.50
+rapport tech-trend "Rust"
+rapport tech-radar "cybersecurity"
+rapport tech-oss "shadcn/ui"
+rapport tech-ai "GPT-4o, Claude Sonnet, Gemini 2.5 Flash"
+```
+
+### Backward compatibility
+
+The old command names still work via thin wrappers:
+
+| Old command | New equivalent |
+|-------------|---------------|
+| `fin-investor-rapport "X"` | `rapport fin-investor "X"` |
+| `fin-dybdeanalyse "X"` | `rapport fin-dybde "X"` |
+| `fin-sammenlign-rapporter "A" "B"` | `rapport fin-sammenlign "A" "B"` |
+| `tech-puls "X"` | `rapport tech-puls "X"` |
+| `tech-trend-analyse "X"` | `rapport tech-trend "X"` |
+| `tech-sektor-radar "X"` | `rapport tech-radar "X"` |
+| `tech-oss-helse "X"` | `rapport tech-oss "X"` |
+| `tech-ai-sammenligning "X"` | `rapport tech-ai "X"` |
+
+---
+
+## Config files (`rapporter/*.conf`)
+
+Each report type is defined by a config file with these fields:
+
+```bash
+NAME="Investorrapport"           # Display name
+FILENAME_PREFIX=""               # Prefix in output filename (e.g. "dybde_")
+RAG_PREFIX="rapport"             # Prefix for RAG index key
+TEMPLATE="investorsammenligning.html"  # HTML template to use
+MODEL="claude-haiku-4-5-20251001"      # Default Claude model
+BUDGET="0.80"                    # Default budget cap (USD)
+CACHE_DAYS=7                     # Days before regenerating
+INPUT_LABEL="Selskaper"          # Help text for input argument
+SUBJECT_PREFIX="Investoranalyse" # Email subject prefix
+TITTEL_PREFIX="Investoranalyse"  # claude-kjor --tittel prefix
+
+PROMPT='Your prompt here with ${INPUT}, ${DATO}, ${MALSTI}, ${UTFIL} placeholders'
+```
+
+For the dual-input comparison type (`fin-sammenlign`), add:
+```bash
+INPUT_MODE="dual"
+```
+This enables `${INPUT_FILE_1}` and `${INPUT_FILE_2}` in the prompt.
+
+---
+
+## Core utilities
 
 | Script | Purpose |
 |--------|---------|
-| `claude-kjor` | Wrapper around `claude --print` with automatic rate-limit retry (up to 8 attempts, 65 min wait). Used internally by all report scripts. |
-| `hmail` | Thin wrapper around `himalaya message send` for plain-text and HTML email. |
-| `list-rapporter` | List all saved reports with date, type, and subject. Supports `--tech`, `--finans`, `--rag` flags. |
+| `rapport` | Generic report runner — loads `.conf` files and handles all boilerplate |
+| `claude-kjor` | Wrapper around `claude --print` with automatic rate-limit retry (up to 8 attempts, 65 min wait) |
+| `hmail` | Thin wrapper around `himalaya message send` for plain-text and HTML email |
+| `list-rapporter` | List all saved reports with date, type, and subject. Supports `--tech`, `--finans`, `--rag` flags |
 
 ---
 
-### Financial analytics
-
-#### `fin-dybdeanalyse "Equinor"`
-Deep single-company analysis. Analogous to a sell-side equity research note.
-
-Sections: business overview · financial history (3yr) · valuation · competitive moat · management · risk map · growth catalysts · 3 scenarios (bull/base/bear) · investor profile fit · buy/hold/sell recommendation.
-
-```bash
-dybdeanalyse "Aker BP"
-dybdeanalyse "Mowi" --to "annen@epost.no"
-dybdeanalyse "Equinor" --budget 2.00
-dybdeanalyse "Capgemini" --model claude-opus-4-6
-```
-
-**Model:** Sonnet · **Default budget:** $1.50 · **Cache:** 7 days
-
----
-
-#### `fin-investor-rapport "DNB, Equinor, Aker BP"`
-Comparative multi-company investor report for 2–4 companies.
-
-Sections: what they do · valuation table · revenue & growth · debt & financial strength · risk map · opportunity map · investor profile fit · scorecard · buy if / avoid if · one-line verdict per company.
-
-```bash
-send-investor-rapport "DNB, Equinor, Aker BP"
-send-investor-rapport "Capgemini, TCS" --to "annen@epost.no" --budget 1.00
-```
-
-**Model:** Haiku · **Default budget:** $0.80 · **Cache:** 7 days
-
----
-
-#### `fin-sammenlign-rapporter "olje-gass" "fornybar"`
-Cross-sector comparison of two previously saved reports (uses report slug or filename).
-
-```bash
-sammenlign-rapporter "olje-gass" "sjomat"
-sammenlign-rapporter "2026-02-22_olje-gass" "2026-01-15_finans"
-sammenlign-rapporter "olje-gass" "fornybar" --budget 1.00
-```
-
-**Model:** Haiku · **Default budget:** $0.80 · **Cache:** 7 days
-
----
+## Stock tools (non-report)
 
 #### `fetch-stocks AKRBP.OL CAP.PA`
 Fetch live stock prices, key ratios, analyst consensus, and 3-year performance via Yahoo Finance. No AI call — pure data.
@@ -110,95 +155,8 @@ fetch-stocks NVDA --full          # + analyst targets, dividend history, key rat
 fetch-stocks --watchlist          # predefined watchlist (edit script to configure)
 ```
 
----
-
 #### `send-stock-report --tickers "DNB.OL EQNR.OL NVDA" --to "you@example.com"`
 Formatted HTML stock report with live data, sent by email.
-
-```bash
-send-stock-report --tickers "AKRBP.OL EQNR.OL" --to "you@example.com"
-send-stock-report --tickers "NVDA MSFT" --to "you@example.com" --subject "My watchlist"
-```
-
----
-
-### Tech analytics
-
-#### `tech-puls "AI agents"`
-Fresh weekly digest with real links — videos, news, papers, tools. Searches the web for content from the last 30 days.
-
-Sections: what's happening now · videos worth watching (YouTube + conference talks) · latest news & articles · publications & research · tools with momentum · who to follow.
-
-```bash
-tech-puls "AI agents"
-tech-puls "WebAssembly" --to "annen@epost.no"
-tech-puls "Rust" --budget 1.50
-```
-
-**Model:** Sonnet · **Default budget:** $1.00 · **Cache:** 7 days
-
----
-
-#### `tech-trend-analyse "Rust"`
-Deep technology trend analysis. The tech equivalent of `fin-dybdeanalyse`.
-
-Sections: what it is · adoption curve (GitHub stars, Stack Overflow, TIOBE) · job market demand · ecosystem & toolchain · competitors comparison · strengths & weaknesses · 3 scenarios (mainstream/niche/fading) · who should learn it · resources · verdict (LEARN NOW / WATCH / SKIP).
-
-```bash
-tech-trend-analyse "Rust"
-tech-trend-analyse "WebAssembly" --to "annen@epost.no"
-tech-trend-analyse "htmx" --budget 2.00
-tech-trend-analyse "Kubernetes" --model claude-opus-4-6
-```
-
-**Model:** Sonnet · **Default budget:** $1.50 · **Cache:** 14 days
-
----
-
-#### `tech-sektor-radar "AI infra"`
-Tech sector pulse report. What's hot, what's rising, what's fading — in a given domain.
-
-Domains to try: `AI infra` · `developer tools` · `cybersecurity` · `edge computing` · `observability` · `WebAssembly` · `data engineering`
-
-Sections: sector overview · top 5 projects/companies with momentum signal · new OSS projects (< 12 months) · key events last quarter · hype vs. substance table · where top engineers are moving · risk factors · ThoughtWorks-style radar (ADOPT/TRY/ASSESS/HOLD) · 3 concrete actions.
-
-```bash
-sektor-radar "AI infra"
-sektor-radar "developer tools" --to "annen@epost.no"
-sektor-radar "cybersecurity" --budget 1.00
-```
-
-**Model:** Haiku · **Default budget:** $0.80 · **Cache:** 7 days
-
----
-
-#### `tech-oss-helse "shadcn/ui"`
-Open source project health check. Answers: is this safe to build on?
-
-Sections: project overview · contributor health (bus factor, spread) · commit & release activity · issue & PR health · dependency risk · funding & governance · fork ecosystem · health scorecard (6 dimensions, 1–5 score) · recommendation (HEALTHY / WATCHFUL / AT RISK).
-
-```bash
-oss-prosjekt-helse "shadcn/ui"
-oss-prosjekt-helse "tauri-apps/tauri"
-oss-prosjekt-helse "htmx" --to "annen@epost.no"
-```
-
-**Model:** Haiku · **Default budget:** $0.40 · **Cache:** 14 days
-
----
-
-#### `tech-ai-sammenligning "GPT-4o, Claude Sonnet, Gemini 2.5 Flash"`
-Side-by-side comparison of 2–4 AI models. The tech equivalent of `fin-investor-rapport`.
-
-Sections: model card (context window, cutoff, license, API availability) · benchmarks (MMLU, HumanEval, MATH, GPQA) · pricing per 1M tokens · strengths by use case (code, long docs, multilingual, tool use, structured output, multimodal) · practical API experience (latency, rate limits, SDKs) · weaknesses · who each model fits · winner per scenario.
-
-```bash
-ai-modell-sammenligning "GPT-4o, Claude Sonnet, Gemini 2.5 Flash"
-ai-modell-sammenligning "Llama 3.3, Mistral Large, Qwen 2.5"
-ai-modell-sammenligning "o3, Claude Opus, Gemini 2.0 Ultra" --budget 0.80
-```
-
-**Model:** Haiku · **Default budget:** $0.50 · **Cache:** 7 days
 
 ---
 
@@ -208,20 +166,21 @@ ai-modell-sammenligning "o3, Claude Opus, Gemini 2.0 Ultra" --budget 0.80
 you / OpenClaw assistant
         │
         ▼
-   report script          ← bash script in ~/.local/bin/
+   rapport <type> <input>    ← generic runner in ~/.local/bin/
         │
-        ├─ archive check  ← skip if report < N days old
-        │
-        ▼
-   claude-kjor            ← wrapper with rate-limit retry
+        ├─ load .conf        ← rapporter/<type>.conf
+        ├─ archive check     ← skip if report < N days old
         │
         ▼
-   claude --print         ← Claude Code CLI in non-interactive mode
-        │  (searches web, generates HTML, saves file, sends email)
+   claude-kjor               ← wrapper with rate-limit retry
         │
-        ├─► HTML file      → workspace/rapporter/YYYY-MM-DD_type_slug.html
-        ├─► email          → via hmail → himalaya → Gmail/SMTP
-        └─► RAG index      → rag add <file> <source-name>
+        ▼
+   claude --print            ← Claude Code CLI in non-interactive mode
+        │  (searches web, generates HTML, saves file)
+        │
+        ├─► HTML file         → workspace/rapporter/YYYY-MM-DD_type_slug.html
+        ├─► email             → via hmail → himalaya → Gmail/SMTP
+        └─► RAG index         → rag add <file> <source-name>
 ```
 
 All reports are written in Norwegian (technical terms kept in English), targeting a non-specialist reader. Claude is instructed never to fabricate numbers — it searches for real data.
@@ -232,63 +191,48 @@ All reports are written in Norwegian (technical terms kept in English), targetin
 
 Reports are saved as:
 ```
-YYYY-MM-DD_<type>_<slug>.html
+YYYY-MM-DD_<prefix><slug>.html
 ```
 
-| Prefix | Script |
-|--------|--------|
-| `dybde_` | `fin-dybdeanalyse` |
-| `sammenligning_` | `fin-sammenlign-rapporter` |
-| `tech_` | `tech-trend-analyse` |
-| `radar_` | `tech-sektor-radar` |
-| `oss_` | `tech-oss-helse` |
-| `aimod_` | `tech-ai-sammenligning` |
-| (no prefix) | `fin-investor-rapport` |
+| Prefix | Report type |
+|--------|-------------|
+| *(none)* | `fin-investor` |
+| `dybde_` | `fin-dybde` |
+| `sammenligning_` | `fin-sammenlign` |
+| `puls_` | `tech-puls` |
+| `tech_` | `tech-trend` |
+| `radar_` | `tech-radar` |
+| `oss_` | `tech-oss` |
+| `aimod_` | `tech-ai` |
 
 ---
 
 ## OpenClaw integration
 
-If you run OpenClaw (Lilleklo), the assistant can trigger any of these scripts directly via its exec tool:
+If you run OpenClaw (Lilleklo), the assistant can trigger any report directly via its exec tool:
 
 ```
 # In a Telegram message to Lilleklo:
 "Kan du lage en tech-trend-analyse av Rust og sende til meg?"
 
 # Lilleklo will call:
-tech-trend-analyse "Rust" --to "lsoraas@gmail.com"
-```
-
-To add these scripts to the assistant's awareness, add to `workspace/TOOLS.md`:
-
-```markdown
-## Analytics Scripts
-
-| Script | Purpose |
-|--------|---------|
-| `tech-trend-analyse "X"` | Deep tech trend analysis (~$1.50, Sonnet) |
-| `tech-sektor-radar "X"` | Tech sector pulse report (~$0.80) |
-| `tech-oss-helse "X"` | OSS project health check (~$0.40) |
-| `tech-ai-sammenligning "X, Y"` | AI model comparison (~$0.50) |
-| `fin-dybdeanalyse "X"` | Deep company analysis (~$1.50, Sonnet) |
-| `fin-investor-rapport "X, Y"` | Multi-company investor report (~$0.80) |
-| `fin-sammenlign-rapporter "X" "Y"` | Compare two saved reports (~$0.80) |
-| `list-rapporter` | Show all saved reports |
+rapport tech-trend "Rust" --to "lsoraas@gmail.com"
 ```
 
 ---
 
 ## Cost reference
 
-| Script | Model | Typical cost |
-|--------|-------|-------------|
-| `fin-dybdeanalyse` | Sonnet | $0.50–1.50 |
-| `tech-trend-analyse` | Sonnet | $0.50–1.50 |
-| `fin-investor-rapport` | Haiku | $0.20–0.80 |
-| `fin-sammenlign-rapporter` | Haiku | $0.20–0.80 |
-| `tech-sektor-radar` | Haiku | $0.20–0.80 |
-| `tech-ai-sammenligning` | Haiku | $0.20–0.50 |
-| `tech-oss-helse` | Haiku | $0.10–0.40 |
+| Report type | Model | Typical cost |
+|-------------|-------|-------------|
+| `fin-dybde` | Sonnet | $0.50–2.00 |
+| `tech-trend` | Sonnet | $0.50–1.50 |
+| `tech-puls` | Sonnet | $0.50–1.00 |
+| `fin-investor` | Haiku | $0.20–0.80 |
+| `fin-sammenlign` | Haiku | $0.20–0.80 |
+| `tech-radar` | Haiku | $0.20–0.80 |
+| `tech-ai` | Haiku | $0.20–0.50 |
+| `tech-oss` | Haiku | $0.10–0.40 |
 | `send-stock-report` | Haiku | $0.10–0.30 |
 
-All scripts accept `--budget N` to cap spend.
+All report types accept `--budget N` to cap spend and `--model M` to override the default model.

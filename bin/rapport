@@ -1,0 +1,300 @@
+#!/bin/bash
+# rapport — Generisk runner for alle rapporttyper (investor, dybde, tech, OSS, AI, etc.)
+#
+# Bruk:
+#   rapport <type> <input> [--to email] [--budget N] [--model M]
+#   rapport --list
+#
+# Eksempler:
+#   rapport fin-investor "DNB, Equinor" --to lsoraas@gmail.com
+#   rapport fin-dybde "Orkla"
+#   rapport tech-puls "Rust" --budget 1.50
+#   rapport tech-trend "htmx" --model claude-opus-4-6
+#   rapport fin-sammenlign "olje-gass" "sjømat"
+#
+# Config-filer: /home/lars/.openclaw/workspace/rapporter/<type>.conf
+
+set -e
+
+CONFDIR="/home/lars/.openclaw/workspace/rapporter"
+RAPPORTDIR="/home/lars/.openclaw/workspace/rapporter"
+TEMPLATEDIR="/home/lars/.openclaw/workspace/templates"
+
+# --- Vis tilgjengelige rapporttyper ---
+if [[ "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
+  echo "Tilgjengelige rapporttyper:"
+  echo ""
+  for conf in "$CONFDIR"/*.conf; do
+    [[ -f "$conf" ]] || continue
+    type=$(basename "$conf" .conf)
+    # shellcheck disable=SC1090
+    (
+      source "$conf"
+      printf "  %-20s %s\n" "$type" "${NAME:-}"
+    )
+  done
+  echo ""
+  echo "Bruk: rapport <type> <input> [--to email] [--budget N] [--model M]"
+  exit 0
+fi
+
+# --- Parse argumenter ---
+TYPE="${1:-}"
+shift 2>/dev/null || true
+
+if [[ -z "$TYPE" ]]; then
+  echo "Feil: Oppgi rapporttype som første argument."
+  echo "Kjør 'rapport --list' for å se tilgjengelige typer."
+  exit 1
+fi
+
+CONFFILE="$CONFDIR/${TYPE}.conf"
+if [[ ! -f "$CONFFILE" ]]; then
+  echo "Feil: Ukjent rapporttype \"$TYPE\""
+  echo "Kjør 'rapport --list' for å se tilgjengelige typer."
+  exit 1
+fi
+
+# --- Last config ---
+# shellcheck disable=SC1090
+source "$CONFFILE"
+
+# Sett defaults for felter som kanskje mangler i config
+INPUT_MODE="${INPUT_MODE:-single}"
+ARCHIVE_EXCLUDE="${ARCHIVE_EXCLUDE:-}"
+FILENAME_PREFIX="${FILENAME_PREFIX:-}"
+RAG_PREFIX="${RAG_PREFIX:-rapport}"
+CACHE_DAYS="${CACHE_DAYS:-7}"
+SUBJECT_PREFIX="${SUBJECT_PREFIX:-Rapport}"
+TITTEL_PREFIX="${TITTEL_PREFIX:-Rapport}"
+
+# --- Parse resten av argumentene ---
+MOTTAKER="lsoraas@gmail.com"
+POSITIONAL=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --to)     MOTTAKER="$2"; shift 2 ;;
+    --budget) BUDGET="$2"; shift 2 ;;
+    --model)  MODEL="$2"; shift 2 ;;
+    *)        POSITIONAL+=("$1"); shift ;;
+  esac
+done
+
+# --- Valider input ---
+if [[ "$INPUT_MODE" == "dual" ]]; then
+  if [[ ${#POSITIONAL[@]} -lt 2 ]]; then
+    echo "Feil: Denne rapporttypen krever to argumenter."
+    echo ""
+    echo "Bruk: rapport $TYPE \"<søk1>\" \"<søk2>\" [--to email] [--budget N]"
+    echo "Eksempel: rapport $TYPE \"olje-gass\" \"sjømat\""
+    echo ""
+    echo "Tilgjengelige rapporter:"
+    ls "$RAPPORTDIR"/*.html 2>/dev/null | xargs -I{} basename {} .html | sed 's/^/  /'
+    exit 1
+  fi
+  SOK1="${POSITIONAL[0]}"
+  SOK2="${POSITIONAL[1]}"
+  INPUT="$SOK1 vs $SOK2"
+else
+  INPUT="${POSITIONAL[0]:-}"
+  if [[ -z "$INPUT" ]]; then
+    echo "Feil: Oppgi ${INPUT_LABEL:-input} som argument."
+    echo ""
+    echo "Bruk: rapport $TYPE \"<input>\" [--to email] [--budget N] [--model M]"
+    exit 1
+  fi
+fi
+
+DATO=$(date +%Y-%m-%d)
+MALSTI="${TEMPLATEDIR}/${TEMPLATE}"
+
+# --- Lag slug ---
+slugify() {
+  echo "$1" \
+    | sed 's/[æÆ]/ae/g; s/[øØ]/o/g; s/[åÅ]/a/g' \
+    | tr '[:upper:]' '[:lower:]' \
+    | tr -cs 'a-z0-9' '-' \
+    | sed 's/^-//;s/-$//'
+}
+
+# --- Dual mode: finn rapportfiler ---
+if [[ "$INPUT_MODE" == "dual" ]]; then
+  finn_rapport() {
+    local sok="$1"
+    if [[ -f "$RAPPORTDIR/${sok}.html" ]]; then
+      echo "$RAPPORTDIR/${sok}.html"
+      return
+    fi
+    local treff
+    treff=$(ls -t "$RAPPORTDIR"/*"${sok}"*.html 2>/dev/null | head -1)
+    echo "${treff:-}"
+  }
+
+  FIL1=$(finn_rapport "$SOK1")
+  FIL2=$(finn_rapport "$SOK2")
+
+  if [[ -z "$FIL1" ]]; then
+    echo "Feil: Fant ingen rapport som matcher \"$SOK1\""
+    echo "Tilgjengelige: $(ls "$RAPPORTDIR"/*.html 2>/dev/null | xargs -I{} basename {} .html | tr '\n' ', ')"
+    exit 1
+  fi
+  if [[ -z "$FIL2" ]]; then
+    echo "Feil: Fant ingen rapport som matcher \"$SOK2\""
+    echo "Tilgjengelige: $(ls "$RAPPORTDIR"/*.html 2>/dev/null | xargs -I{} basename {} .html | tr '\n' ', ')"
+    exit 1
+  fi
+
+  NAVN1=$(basename "$FIL1" .html)
+  NAVN2=$(basename "$FIL2" .html)
+  SLUG="${FILENAME_PREFIX}${NAVN1}_vs_${NAVN2}"
+  UTFIL="${RAPPORTDIR}/${DATO}_${SLUG}.html"
+  RAG_KILDE="${RAG_PREFIX}_${DATO}_${SLUG}"
+
+  # Prompt-variabler for dual mode
+  INPUT_FILE_1="$FIL1"
+  INPUT_FILE_2="$FIL2"
+
+  SUBJECT_DISPLAY="$SOK1 vs $SOK2"
+  TITTEL_DISPLAY="$NAVN1 vs $NAVN2"
+else
+  SLUG=$(slugify "$INPUT")
+  if [[ -n "$FILENAME_PREFIX" ]]; then
+    UTFIL="${RAPPORTDIR}/${DATO}_${FILENAME_PREFIX}${SLUG}.html"
+  else
+    UTFIL="${RAPPORTDIR}/${DATO}_${SLUG}.html"
+  fi
+  RAG_KILDE="${RAG_PREFIX}_${DATO}_${SLUG}"
+
+  SUBJECT_DISPLAY="$INPUT"
+  TITTEL_DISPLAY="$INPUT"
+fi
+
+mkdir -p "$RAPPORTDIR"
+
+# --- Sjekk arkiv-cache ---
+sjekk_arkiv() {
+  local moenster="$1"
+  for kandidat in $moenster; do
+    [[ -f "$kandidat" ]] || continue
+
+    # Sjekk ARCHIVE_EXCLUDE
+    if [[ -n "$ARCHIVE_EXCLUDE" ]]; then
+      local bn
+      bn=$(basename "$kandidat")
+      if echo "$bn" | grep -qiE "$ARCHIVE_EXCLUDE"; then
+        continue
+      fi
+    fi
+
+    local alder_dager
+    alder_dager=$(( ( $(date +%s) - $(date -r "$kandidat" +%s 2>/dev/null || stat -c %Y "$kandidat" 2>/dev/null || echo 0) ) / 86400 ))
+    if [[ $alder_dager -lt $CACHE_DAYS ]]; then
+      local lagret_dato
+      lagret_dato=$(basename "$kandidat" .html | cut -d_ -f1)
+      echo "✅ ${NAME} finnes fra ${lagret_dato} — sender fra arkiv."
+      /home/lars/.local/bin/hmail \
+        --from "Klarsyn Analyse <testkonto5221@gmail.com>" \
+        --to "$MOTTAKER" \
+        --subject "${SUBJECT_PREFIX}: $SUBJECT_DISPLAY ($lagret_dato) [fra arkiv]" \
+        --file "$kandidat"
+      echo "Sendt fra arkiv: $kandidat"
+      exit 0
+    fi
+  done
+}
+
+if [[ "$INPUT_MODE" == "dual" ]]; then
+  # Sjekk begge retninger for sammenligninger
+  sjekk_arkiv "$RAPPORTDIR/*_${FILENAME_PREFIX}${NAVN1}_vs_${NAVN2}.html"
+  sjekk_arkiv "$RAPPORTDIR/*_${FILENAME_PREFIX}${NAVN2}_vs_${NAVN1}.html"
+else
+  if [[ -n "$FILENAME_PREFIX" ]]; then
+    sjekk_arkiv "$RAPPORTDIR/*_${FILENAME_PREFIX}${SLUG}.html"
+  else
+    sjekk_arkiv "$RAPPORTDIR/*_${SLUG}.html"
+  fi
+fi
+
+# --- Info ---
+echo "=== rapport: $TYPE ==="
+echo "Input     : $INPUT"
+echo "Modell    : $MODEL"
+echo "Mottaker  : $MOTTAKER"
+echo "Budsjett  : USD $BUDGET"
+echo "Lagres    : $UTFIL"
+echo "RAG-kilde : $RAG_KILDE"
+echo ""
+echo "Starter Claude Code CLI..."
+
+# --- Ekspander prompt ---
+PROMPT="${PROMPT//\$\{INPUT\}/$INPUT}"
+PROMPT="${PROMPT//\$\{DATO\}/$DATO}"
+PROMPT="${PROMPT//\$\{MALSTI\}/$MALSTI}"
+PROMPT="${PROMPT//\$\{UTFIL\}/$UTFIL}"
+if [[ "$INPUT_MODE" == "dual" ]]; then
+  PROMPT="${PROMPT//\$\{INPUT_FILE_1\}/$INPUT_FILE_1}"
+  PROMPT="${PROMPT//\$\{INPUT_FILE_2\}/$INPUT_FILE_2}"
+fi
+
+# --- Kjør Claude ---
+TMPOUT=$(mktemp --suffix=.html)
+
+set +e
+claude-kjor \
+  --tittel "${TITTEL_PREFIX}: $TITTEL_DISPLAY" \
+  --mottaker "$MOTTAKER" \
+  -- \
+  --dangerously-skip-permissions \
+  --model "$MODEL" \
+  --max-budget-usd "$BUDGET" \
+  --print \
+  "$PROMPT" | tee "$TMPOUT"
+CLAUDE_OK=${PIPESTATUS[0]}
+set -e
+
+if [[ $CLAUDE_OK -ne 0 ]]; then
+  echo "FEIL: claude-kjor avsluttet med kode $CLAUDE_OK."
+  rm -f "$TMPOUT"
+  exit $CLAUDE_OK
+fi
+
+# --- Fallback: redd rapport fra stdout hvis Claude ikke lagret filen ---
+if [[ ! -f "$UTFIL" ]]; then
+  if grep -qi '<html\|<!DOCTYPE' "$TMPOUT" 2>/dev/null; then
+    echo ""
+    echo "Rapport ikke lagret av Claude — lagrer fra stdout-buffer..."
+    cp "$TMPOUT" "$UTFIL"
+  else
+    echo "ADVARSEL: Ingen gyldig HTML-rapport generert."
+    rm -f "$TMPOUT"
+    exit 1
+  fi
+fi
+rm -f "$TMPOUT"
+
+# --- Send epost ---
+if [[ -f "$UTFIL" ]]; then
+  /home/lars/.local/bin/hmail \
+    --from "Klarsyn Analyse <testkonto5221@gmail.com>" \
+    --to "$MOTTAKER" \
+    --subject "${SUBJECT_PREFIX}: $SUBJECT_DISPLAY ($DATO)" \
+    --file "$UTFIL" \
+    && echo "Epost sendt til $MOTTAKER." \
+    || echo "ADVARSEL: Epostsending feilet."
+fi
+
+# --- RAG-indeksering ---
+if [[ -f "$UTFIL" ]]; then
+  echo ""
+  echo "Legger rapport til i RAG som: $RAG_KILDE"
+  /home/lars/.local/bin/rag add "$UTFIL" "$RAG_KILDE" \
+    && echo "RAG: OK" \
+    || echo "RAG: FEIL (rapport er likevel lagret på disk)"
+else
+  echo "ADVARSEL: Rapportfil ikke funnet på $UTFIL — RAG-ingestion hoppet over."
+fi
+
+echo ""
+echo "=== Ferdig ==="
+echo "Rapport lagret: $UTFIL"
