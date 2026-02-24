@@ -27,14 +27,15 @@ Disse malene er utgangspunkt for nye rapporter. Filene ligger her:
 
 ### Slik lager du en ny rapport
 
-#### Metode 1: Automatisk via shell-script (anbefalt)
+#### Metode 1: Via rapport-kommandoen (anbefalt)
 
 ```bash
-fin-investor-rapport "DNB, Equinor, Aker BP"
-fin-investor-rapport "Capgemini, TCS" --to "annen@epost.no"
+rapport fin-investor "DNB, Equinor, Aker BP"
+rapport fin-investor "Capgemini, TCS" --to "annen@epost.no"
+rapport fin-dybde "Equinor" --model claude-opus-4-6
 ```
 
-Scriptet (`/home/lars/.local/bin/fin-investor-rapport`) kaller Claude Code CLI (`claude`) som:
+Kommandoen kaller Claude Code CLI (`claude`) som:
 1. Søker etter oppdatert finansdata for hvert selskap
 2. Leser og fyller inn HTML-malen
 3. Sender ferdig rapport på epost
@@ -43,7 +44,7 @@ Kostnad: ~USD 0.30–0.80 per rapport (Haiku-modellen). Budsjettgrense kan sette
 
 **Lilleklo kan trigge dette direkte** ved å kjøre kommandoen via exec-tool:
 ```
-fin-investor-rapport "DNB, Equinor" --to "lsoraas@gmail.com"
+rapport fin-investor "DNB, Equinor" --to "lsoraas@gmail.com"
 ```
 
 ---

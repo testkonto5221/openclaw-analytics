@@ -89,21 +89,6 @@ rapport tech-oss "shadcn/ui"
 rapport tech-ai "GPT-4o, Claude Sonnet, Gemini 2.5 Flash"
 ```
 
-### Backward compatibility
-
-The old command names still work via thin wrappers:
-
-| Old command | New equivalent |
-|-------------|---------------|
-| `fin-investor-rapport "X"` | `rapport fin-investor "X"` |
-| `fin-dybdeanalyse "X"` | `rapport fin-dybde "X"` |
-| `fin-sammenlign-rapporter "A" "B"` | `rapport fin-sammenlign "A" "B"` |
-| `tech-puls "X"` | `rapport tech-puls "X"` |
-| `tech-trend-analyse "X"` | `rapport tech-trend "X"` |
-| `tech-sektor-radar "X"` | `rapport tech-radar "X"` |
-| `tech-oss-helse "X"` | `rapport tech-oss "X"` |
-| `tech-ai-sammenligning "X"` | `rapport tech-ai "X"` |
-
 ---
 
 ## Config files (`rapporter/*.conf`)
@@ -213,7 +198,7 @@ If you run OpenClaw (Lilleklo), the assistant can trigger any report directly vi
 
 ```
 # In a Telegram message to Lilleklo:
-"Kan du lage en tech-trend-analyse av Rust og sende til meg?"
+"Kan du lage en trendanalyse av Rust og sende til meg?"
 
 # Lilleklo will call:
 rapport tech-trend "Rust" --to "lsoraas@gmail.com"

@@ -49,21 +49,6 @@ rapport tech-ai "GPT-4o, Claude Sonnet, Gemini 2.5 Flash"
 6. Sender rapport via e-post (`hmail`)
 7. Indekserer i RAG-kunnskapsbasen
 
-### Bakoverkompatibilitet
-
-De gamle kommandonavnene fungerer fortsatt via wrappers:
-
-| Gammel kommando | Ny kommando |
-|----------------|-------------|
-| `fin-dybdeanalyse "X"` | `rapport fin-dybde "X"` |
-| `fin-investor-rapport "X"` | `rapport fin-investor "X"` |
-| `fin-sammenlign-rapporter "A" "B"` | `rapport fin-sammenlign "A" "B"` |
-| `tech-puls "X"` | `rapport tech-puls "X"` |
-| `tech-trend-analyse "X"` | `rapport tech-trend "X"` |
-| `tech-sektor-radar "X"` | `rapport tech-radar "X"` |
-| `tech-oss-helse "X"` | `rapport tech-oss "X"` |
-| `tech-ai-sammenligning "X"` | `rapport tech-ai "X"` |
-
 ### Oversikt over lagrede rapporter
 
 Bruk `list-rapporter` for å se alle lagrede rapporter med dato og sektor.

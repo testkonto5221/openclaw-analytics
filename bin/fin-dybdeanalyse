@@ -1,3 +1,0 @@
-#!/bin/bash
-# Wrapper — delegerer til generisk runner
-exec rapport fin-dybde "$@"
